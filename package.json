@@ -1,0 +1,24 @@
+{
+	"name": "dmg-read-more",
+	"version": "0.1.0",
+	"description": "Adds a block to search for and insert posts by ID, plus a WP-CLI command to find posts using the block.",
+	"author": "Matt Watson",
+	"license": "GPL-2.0-or-later",
+	"main": "build/index.js",
+	"scripts": {
+		"build": "wp-scripts build",
+		"format": "wp-scripts format",
+		"lint:css": "wp-scripts lint-style",
+		"lint:js": "wp-scripts lint-js",
+		"packages-update": "wp-scripts packages-update",
+		"plugin-zip": "wp-scripts plugin-zip",
+		"start": "wp-scripts start"
+	},
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "^8.23.0",
+		"@typescript-eslint/parser": "^8.23.0",
+		"@wordpress/eslint-plugin": "^22.3.0",
+		"@wordpress/scripts": "^30.10.0",
+		"eslint": "^9.19.0"
+	}
+}

@@ -1,0 +1,19 @@
+parameters:
+  level: 5
+  paths:
+    - .
+  dynamicConstantNames:
+    - COOKIEPATH
+    - DB_NAME
+    - DOMAIN_CURRENT_SITE
+    - SCRIPT_DEBUG
+    - SITECOOKIEPATH
+  scanFiles:
+    - stubs/stubs.php
+  excludePaths:
+    - node_modules
+    - vendor
+  checkGenericClassInNonGenericObjectType: false
+  ignoreErrors:
+    - '#^Function apply_filters invoked with [3456789] parameters, 2 required\.$#'
+  reportUnmatchedIgnoredErrors: false

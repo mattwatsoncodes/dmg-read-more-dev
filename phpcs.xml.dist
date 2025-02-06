@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<ruleset name="DMG Read More">
+    <description>PHP CodeSniffer standard for DMG Read More, enforcing WordPress VIP standards.</description>
+
+    <arg name="basepath" value="." />
+    <arg name="extensions" value="php/PHP,js/JS,jsx/JS" />
+    <arg value="sp" />
+    <arg name="parallel" value="8" />
+
+    <exclude-pattern>*/build/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+
+    <config name="minimum_supported_wp_version" value="6.0.0" />
+    <config name="testVersion" value="7.4-" />
+
+    <!-- PHP Compatibility -->
+    <rule ref="PHPCompatibilityWP" />
+
+    <!-- Enforce WordPress VIP standards -->
+    <rule ref="WordPress-VIP-Go" />
+    <rule ref="WordPressVIPMinimum" />
+
+    <rule ref="WordPress">
+        <exclude-pattern>*\.(jsx?)$</exclude-pattern>
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found" />
+        <exclude name="Generic.Commenting" />
+        <exclude name="Generic.PHP.DisallowShortOpenTag.EchoFound" />
+        <exclude name="Generic.Formatting.MultipleStatementAlignment.NotSameWarning" />
+        <exclude name="Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed" />
+        <exclude name="PEAR.Functions.FunctionCallSignature.CloseBracketLine" />
+        <exclude name="PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket" />
+        <exclude name="PEAR.Functions.FunctionCallSignature.Indent" />
+        <exclude name="PEAR.Functions.FunctionCallSignature.MultipleArguments" />
+        <exclude name="PEAR.Functions.FunctionCallSignature.OpeningIndent" />
+        <exclude name="Squiz.Commenting" />
+        <exclude name="Squiz.WhiteSpace.SuperfluousWhitespace.EndLine" />
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax.Found" />
+        <exclude name="WordPress.Arrays.ArrayIndentation" />
+        <exclude name="WordPress.Files.FileName.InvalidClassFileName" />
+        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase" />
+        <exclude name="WordPress.NamingConventions.ValidHookName.UseUnderscores" />
+        <exclude name="WordPress.PHP.DisallowShortTernary.Found" />
+    </rule>
+
+    <!-- Security Rules -->
+    <rule ref="WordPress.Security.ValidatedSanitizedInput">
+        <exclude-pattern>*\.(jsx?)$</exclude-pattern>
+        <properties>
+            <property name="customUnslashingSanitizingFunctions" type="array">
+                <element value="wp_verify_nonce" />
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Slevomat Coding Standards -->
+    <exclude name="SlevomatCodingStandard" />
+    <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint">
+        <exclude-pattern>*\.(jsx?)$</exclude-pattern>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint">
+        <exclude-pattern>*\.(jsx?)$</exclude-pattern>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.PropertyTypeHint">
+        <exclude-pattern>*\.(jsx?)$</exclude-pattern>
+        <exclude name="SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingTraversableTypeHintSpecification" />
+    </rule>
+
+    <!-- Translations -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="dmg-read-more" />
+            </property>
+        </properties>
+    </rule>
+</ruleset>

@@ -1,0 +1,47 @@
+{
+    "name": "mattwatsoncodes/dmg-read-more",
+    "description": "DMG Read More",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0+",
+    "authors": [
+        {
+            "name": "Matt Watson",
+            "email": "support@mattwatson.codes"
+        }
+    ],
+	"repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/WordPress/WordPress-Coding-Standards"
+		}
+	],
+	"require-dev": {
+        "automattic/vipwpcs": "^3.0",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "friendsofphp/php-cs-fixer": "^2.16",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "phpstan/extension-installer": "^1.2",
+        "phpstan/phpstan": "^1.8",
+        "slevomat/coding-standard": "^8.15",
+        "szepeviktor/phpstan-wordpress": "^1.1",
+        "wp-cli/wp-cli-bundle": "*",
+        "wp-coding-standards/wpcs": "^3.1"
+    },
+	"scripts": {
+		"fixer": "vendor/bin/php-cs-fixer fix",
+		"phpcs": "vendor/bin/phpcs",
+		"phpcbf": "vendor/bin/phpcbf",
+		"phpstan": "vendor/bin/phpstan analyse --level=5 --memory-limit=2G",
+		"phpstan-all": "vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=2G"
+	},
+    "config": {
+		"vendor-dir": "vendor",
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "phpstan/extension-installer": true,
+            "composer/installers": true
+        },
+		"optimize-autoloader": true,
+		"sort-packages": true
+    }
+}
