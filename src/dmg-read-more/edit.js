@@ -5,9 +5,17 @@ import { __ } from '@wordpress/i18n';
 export default function Edit() {
 	const blockProps = useBlockProps();
 
-	const posts = useSelect( ( select ) => {
+	// Retrieve this from localized php for performance.
+	// eslint-disable-next-line no-undef
+	const { totalPublishedPosts = 0 } = dmgReadMoreData || {};
+	const postsPerPage = 5;
+
+	/**
+	 * Fetch the posts, and the total amount of pages.
+	 */
+	const { posts, totalPages } = useSelect( ( select ) => {
 		const query = {
-			per_page: 10,
+			per_page: postsPerPage,
 			page: 1,
 			orderby: 'date',
 			order: 'desc',
@@ -20,10 +28,15 @@ export default function Edit() {
 			query
 		);
 
-		return posts || [];
-	}, [] );
+		const totalPages = Math.ceil( totalPublishedPosts / postsPerPage )
 
-	console.log( posts );
+		return {
+			posts,
+			totalPages,
+		};
+	}, [ totalPublishedPosts ] );
+
+	console.log( totalPages, posts );
 
 	const selectedPost = {
 		link: 'http://test.com',
