@@ -1,8 +1,11 @@
-import { useBlockProps } from '@wordpress/block-editor';
+import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
+import { PanelBody, RadioControl, TextControl } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 
-export default function Edit() {
+export default function Edit( { attributes, setAttributes } ) {
+	const { selectedPost } = attributes;
+
 	const blockProps = useBlockProps();
 
 	// Retrieve this from localized php for performance.
@@ -64,20 +67,44 @@ export default function Edit() {
 		};
 	}, [ totalPublishedPosts, pageNumber, searchString ] );
 
-	console.log( totalPages, posts );
-
-	const selectedPost = {
-		link: 'http://test.com',
-		title: {
-			rendered: __( 'Test Post', 'dmg-read-more' ),
-		},
-	};
-
 	return (
-		<div { ...blockProps }>
-			<p className="dmg-read-more">
-				<a href={ selectedPost.link }>{ __( 'Read More:', 'dmg-read-more' ) } { selectedPost.title.rendered }</a>
-			</p>
-		</div>
+		<>
+			<InspectorControls>
+				<PanelBody title={ __( 'Select a Post', 'dmg-read-more' ) }>
+					{ posts && posts.length > 0 ? (
+						<RadioControl
+							label={ __( 'Choose a Post', 'dmg-read-more' ) }
+							selected={ selectedPost?.id || null }
+							options={ posts.map( ( post ) => ( {
+								label: post.title.rendered,
+								value: post.id,
+							} ) ) }
+							onChange={ ( postId ) => {
+								const post = posts.find(
+									( post ) => post.id === parseInt( postId )
+								);
+
+								if ( post ) {
+									const selectedPost = {
+										id: post.id,
+										title: post.title.rendered,
+										link: post.link,
+									};
+
+									setAttributes( { selectedPost } );
+								}
+							} }
+						/>
+					) : (
+						<p>{ __( 'No posts found.', 'dmg-read-more' ) }</p>
+					) }
+				</PanelBody>
+			</InspectorControls>
+			<div { ...blockProps }>
+				<p className="dmg-read-more">
+					<a href={ selectedPost.link }>{ __( 'Read More:', 'dmg-read-more' ) } { selectedPost.title }</a>
+				</p>
+			</div>
+		</>
 	);
 }

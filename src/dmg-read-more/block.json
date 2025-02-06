@@ -12,5 +12,15 @@
 		"html": false
 	},
 	"textdomain": "dmg-read-more",
-	"editorScript": "file:./index.js"
+	"editorScript": "file:./index.js",
+	"attributes": {
+		"selectedPost": {
+			"type": "object",
+			"default": {
+				"id": null,
+				"title": "",
+				"link": ""
+			}
+		}
+	}
 }
