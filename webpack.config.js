@@ -18,10 +18,6 @@ process.env.WP_SRC_DIRECTORY = 'src';
 module.exports = {
 	...defaultConfig,
 	mode: 'production',
-	entry: {
-		...defaultConfig.entry(),
-		editor: './src/editor.js',
-	},
 	resolve: {
 		// This will allow us to access the core assets without
 		// having to ../../../ etc...
