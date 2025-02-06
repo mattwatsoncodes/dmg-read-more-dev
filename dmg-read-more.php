@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Define constants.
  */
-const PLUGIN_ROOT_DIR  = __DIR__;
+const PLUGIN_ROOT_DIR = __DIR__;
 
 /**
  * Load the namespaces.
