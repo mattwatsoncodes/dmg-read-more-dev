@@ -8,7 +8,11 @@ export default function Edit() {
 	// Retrieve this from localized php for performance.
 	// eslint-disable-next-line no-undef
 	const { totalPublishedPosts = 0 } = dmgReadMoreData || {};
+
+	// Setup our variables.
 	const postsPerPage = 5;
+	const pageNumber = 1
+	const searchString = 'totam';
 
 	/**
 	 * Fetch the posts, and the total amount of pages.
@@ -16,17 +20,41 @@ export default function Edit() {
 	const { posts, totalPages } = useSelect( ( select ) => {
 		const query = {
 			per_page: postsPerPage,
-			page: 1,
+			page: pageNumber,
 			orderby: 'date',
 			order: 'desc',
 			status: 'publish',
 		};
 
-		const posts = select( 'core' ).getEntityRecords(
-			'postType',
-			'post',
-			query
-		);
+		let posts = [];
+
+		// Check if search string is a number (Post ID).
+		if ( searchString && ! isNaN ( searchString ) ) {
+			const postIdQuery = {
+				...query,
+				include: [ parseInt( searchString ) ],
+			}
+			posts = select( 'core' ).getEntityRecords(
+				'postType',
+				'post',
+				postIdQuery
+			);
+		}
+
+		// If the search string is not a number, or if it was and returned no
+		// results.
+		if ( searchString && ( ! posts.length || isNaN( searchString ) ) ) {
+			query.search = searchString;
+		}
+
+		// If no posts have been returned, use the default query.
+		if ( ! posts.length ) {
+			posts = select( 'core' ).getEntityRecords(
+				'postType',
+				'post',
+				query
+			);
+		}
 
 		const totalPages = Math.ceil( totalPublishedPosts / postsPerPage )
 
@@ -34,7 +62,7 @@ export default function Edit() {
 			posts,
 			totalPages,
 		};
-	}, [ totalPublishedPosts ] );
+	}, [ totalPublishedPosts, pageNumber, searchString ] );
 
 	console.log( totalPages, posts );
 
