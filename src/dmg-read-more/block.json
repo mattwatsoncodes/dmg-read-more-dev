@@ -22,5 +22,6 @@
 				"link": ""
 			}
 		}
-	}
+	},
+	"editorStyle": "file:./index.css"
 }

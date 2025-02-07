@@ -1,0 +1,25 @@
+/**
+ * Highlight Effect Animation.
+ *
+ * This SCSS file defines a CSS animation that temporarily highlights an
+ * element (such as an input field) by changing its background color to
+ * yellow and then fading it back to transparent.
+ *
+ * This exists as a visual cue to users indicating where the block search
+ * field is located.
+ *
+ * Classes:
+ * - `.highlight-effect`: Applies the animation to an element.
+ *
+ * Animations:
+ * - `highlightFade`: A 1-second animation that starts with a yellow
+ *   background and smoothly fades back to transparent.
+ */
+@keyframes highlightFade {
+	0% { background-color: yellow; }
+	100% { background-color: transparent; }
+}
+
+.highlight-effect {
+	animation: highlightFade 1s ease-out;
+}
