@@ -12,8 +12,6 @@ namespace DMG_Read_More;
  */
 function bootstrap(): void {
 	add_action( 'init', __NAMESPACE__ . '\\register_block' );
-
-	Assets\bootstrap();
 }
 
 /**

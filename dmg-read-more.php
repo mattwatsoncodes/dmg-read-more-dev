@@ -26,7 +26,6 @@ const PLUGIN_ROOT_DIR = __DIR__;
 /**
  * Load the namespaces.
  */
-require_once PLUGIN_ROOT_DIR . '/inc/assets.php';
 require_once PLUGIN_ROOT_DIR . '/inc/namespace.php';
 
 /**
