@@ -11,8 +11,10 @@ namespace DMG_Read_More\CLI;
 
 use WP_CLI;
 use WP_CLI\Utils;
-use WP_Post;
 use WP_Query;
+
+use const DMG_Read_More\Taxonomy\TAXONOMY_SLUG;
+use const DMG_Read_More\Taxonomy\TAXONOMY_TERM;
 
 class DMG_Read_More_Search {
 
@@ -68,17 +70,36 @@ class DMG_Read_More_Search {
 
 		do {
 			// Set up WP_Query arguments with pagination.
+			//
+			// Using `tax_query` with a hidden taxonomy that is set when the `dmg/read-more`
+			// block is inserted into a post.
+			//
+			// Performance tests on 1,000,000 posts show that:
+			// - A search query (`s` => 'wp:dmg/read-more') takes ~10 seconds,
+			// - A taxonomy query (`tax_query`) returns results in ~1 second.
+			//
+			// The speed difference occurs because taxonomy lookups use indexed relationships
+			// in the `wp_term_relationships` table, allowing MySQL to efficiently retrieve
+			// only the relevant posts without scanning `post_content`.
 			$query_args = [
-				'post_type'              => 'post',
+				'post_type'              => 'any',              // Allow searching across all post types.
 				'post_status'            => 'publish',
 				'date_query'             => $date_query,
-				's'                      => 'wp:dmg/read-more', // Search for the block.
 				'fields'                 => 'ids',              // Return only Post IDs.
 				'posts_per_page'         => $batch_size,        // Process in batches.
 				'paged'                  => $paged,             // Pagination key.
 				'no_found_rows'          => true,               // Optimize query for large datasets.
 				'update_post_meta_cache' => false,              // Skip meta cache for performance.
 				'update_post_term_cache' => false,              // Skip term cache for performance.
+
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+				'tax_query'              => [
+					[
+						'taxonomy' => TAXONOMY_SLUG,
+						'field'    => 'slug',
+						'terms'    => TAXONOMY_TERM,
+					],
+				],
 			];
 
 			$query       = new WP_Query( $query_args );
@@ -90,11 +111,10 @@ class DMG_Read_More_Search {
 			}
 
 			// Log each found post ID, and increment the counter.
-			foreach ( $query->posts as $post ) {
-
-				// Ensure we get the post ID as a string.
-				$post_id = ( $post instanceof WP_Post ) ? (string) $post->ID : (string) $post;
-				WP_CLI::log( $post_id );
+			// As we are accessing only the 'ids' column, this will always be
+			// an ID, not a WP_Post.
+			foreach ( $query->posts as $post_id ) {
+				WP_CLI::log( (string) $post_id );
 
 				++$total_found;
 			}

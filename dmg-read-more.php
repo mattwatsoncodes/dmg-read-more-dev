@@ -28,6 +28,7 @@ const PLUGIN_ROOT_DIR = __DIR__;
  */
 require_once PLUGIN_ROOT_DIR . '/inc/cli.php';
 require_once PLUGIN_ROOT_DIR . '/inc/namespace.php';
+require_once PLUGIN_ROOT_DIR . '/inc/taxonomy.php';
 
 /**
  * Run.

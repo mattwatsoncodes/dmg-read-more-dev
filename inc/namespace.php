@@ -14,6 +14,7 @@ function bootstrap(): void {
 	add_action( 'init', __NAMESPACE__ . '\\register_block' );
 
 	CLI\bootstrap();
+	Taxonomy\bootstrap();
 }
 
 /**
