@@ -388,7 +388,7 @@ This ensures:
 == Changelog ==
 
 = 1.0.0 =
-* Initial release with DMG Read More block and `dmg-read-more search` WP-CLI command.
+- Initial release with DMG Read More block and `dmg-read-more search` WP-CLI command.
 
 == Upgrade Notice ==
 
@@ -397,9 +397,9 @@ Welcome to the first release of DMG Read More! Enjoy inserting and finding read 
 
 == Requirements ==
 
-* WordPress version 6.0 or higher.
-* PHP version 7.4 or higher.
-* WP-CLI (for command-line functionality).
+- WordPress version 6.0 or higher.
+- PHP version 7.4 or higher.
+- WP-CLI (for command-line functionality).
 
 == Known Issues ==
 
