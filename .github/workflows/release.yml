@@ -11,7 +11,7 @@ jobs:
       contents: write
 
     steps:
-      # 1. Checkout the dev repository (main branch) to use its history.
+      # 1. Checkout the dev repository (dmg-read-more-dev) from its main branch.
       - name: Checkout dev repository
         uses: actions/checkout@v2
         with:
@@ -29,7 +29,7 @@ jobs:
         with:
           php-version: '7.4'
 
-      # 3. Define release variables (used for commit messages and PRs).
+      # 3. Define release variables for commit messages and PR titles.
       - name: Define release variables
         id: release_vars
         run: |
@@ -46,7 +46,7 @@ jobs:
           echo "$BODY" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      # 4. Clone the target repository.
+      # 4. Clone the target repository (dmg-read-more) into a subdirectory.
       - name: Clone target repository
         run: |
           git clone https://x-access-token:${{ secrets.RELEASE_REPO_TOKEN }}@github.com/mattwatsoncodes/dmg-read-more.git target_repo
@@ -71,12 +71,13 @@ jobs:
       - name: Import dev repository via subtree
         run: |
           cd target_repo
-          # The imported content will be placed under the "dev_files" folder.
+          # Set Git identity to avoid empty ident errors.
           git config user.email "matt@mattwatson.codes"
           git config user.name "Matt Watson"
+          # Import the main branch from dev_repo into a temporary folder "dev_files".
           git subtree add --prefix=dev_files dev_repo main
 
-      # 8. Move the imported files from the temporary folder to the repository root.
+      # 8. Move the imported files from the temporary folder to the repository root and remove the folder.
       - name: Move imported files to root
         run: |
           cd target_repo
@@ -84,25 +85,27 @@ jobs:
           rm -rf dev_files
 
       # 9. Build assets in the target repository (dependencies must be available).
-      - name: Build assets
+      - name: Build assets in target repository
         run: |
           cd target_repo
           composer install --no-dev || { echo "Composer installation failed"; exit 1; }
           npm install || { echo "npm install failed"; exit 1; }
           npm run build || { echo "npm run build failed"; exit 1; }
           if [ ! -d "build" ]; then
-            echo "Error: Build folder missing!"
+            echo "Error: Build folder does not exist!"
             exit 1
           fi
+          echo "Assets built successfully."
 
-      # 10. Remove unwanted files (e.g. composer files, node_modules, vendor, and .gitignore).
+      # 10. Remove unwanted files from the target repository.
       - name: Remove unwanted files
         run: |
           cd target_repo
-          rm -rf .github stubs .editorconfig .eslintrc.js .stylelint.json composer.json composer.lock package-lock.json package.json phpcs.xml.dist phpstan.neon webpack.config.js node_modules vendor .gitignore
+          rm -rf .girhub stubs .editorconfig .eslintrc.js .stylelintrc.json composer.json composer.lock package-lock.json package.json phpcs.xml.dist phpstan.neon webpack.config.js node_modules vendor .gitignore
+          echo "Unwanted files removed."
 
-      # 11. Commit and push the changes in the target repository.
-      - name: Commit changes
+      # 11. Commit and push the changes to the target repository.
+      - name: Commit changes in target repository
         run: |
           cd target_repo
           git config user.email "matt@mattwatson.codes"
@@ -112,7 +115,7 @@ jobs:
           git push origin update-from-dev
 
       # 12. Create a pull request in the target repository.
-      - name: Create PR
+      - name: Create PR in target repository
         uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.RELEASE_REPO_TOKEN }}
@@ -123,4 +126,4 @@ jobs:
 
       # 13. Output a success message.
       - name: Complete process
-        run: echo "✅ Sync and build process completed successfully."
+        run: echo "✅ Sync and build process completed successfully. A PR has been created in dmg-read-more."
