@@ -8,8 +8,8 @@ Requires PHP:      7.4
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
-Introduces a block that allows users to search for posts by ID and insert them
-as links, along with a WP-CLI command to identify posts containing this block.
+Adds a block that allows users to search for posts by ID and insert them as links,
+plus a WP-CLI command to identify posts containing the block.
 
 == Description ==
 
