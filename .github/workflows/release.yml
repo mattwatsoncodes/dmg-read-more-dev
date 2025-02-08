@@ -82,6 +82,10 @@ jobs:
             echo "Detached HEAD detected. Creating branch 'release-update'."
             git checkout -b release-update
           fi
+
+          # Configure Git author information locally.
+          git config user.email "matt@mattwatson.codes"
+          git config user.name "Matt Watson"
           
           # Update the Stable tag in readme.txt.
           sed -i "s/^\(Stable tag:\s*\).*/\1$VERSION_NO_V/" readme.txt
@@ -134,6 +138,10 @@ jobs:
             git push origin $DEFAULT_BRANCH
             git checkout -b update-from-dev
           fi
+
+          # Configure Git author information in the target repository.
+          git config user.email "matt@mattwatson.codes"
+          git config user.name "Matt Watson"
           
           # ----------------------------------------------------------------------------
           # Remove unwanted files/folders from the target repository.
@@ -204,6 +212,8 @@ jobs:
       - name: Commit built assets
         run: |
           cd target_repo
+          git config user.email "matt@mattwatson.codes"
+          git config user.name "Matt Watson"
           git add build
           git commit -m "Build assets for release $VERSION"
           git push origin update-from-dev
