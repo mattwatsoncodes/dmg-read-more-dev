@@ -12,14 +12,15 @@ jobs:
 
     steps:
       # ---------------------------------------------------------------------------
-      # Step 1: Check out the source repository (dmg-read-more-dev) at the release tag.
+      # Step 1: Check out the dev repository (dmg-read-more-dev) from its main branch.
+      # (No changes are pushed back to this repository.)
       # ---------------------------------------------------------------------------
-      - name: Check out the source repository
+      - name: Check out dev repository (main branch)
         uses: actions/checkout@v2
         with:
           repository: mattwatsoncodes/dmg-read-more-dev
           fetch-depth: 0
-          ref: ${{ github.event.release.tag_name }}
+          ref: main
 
       # ---------------------------------------------------------------------------
       # Step 2: Set up Node.js (v18) and PHP.
@@ -34,38 +35,31 @@ jobs:
           php-version: '7.4'
 
       # ---------------------------------------------------------------------------
-      # Step 3: Extract release information and export version-related environment variables.
+      # Step 3: Extract release information and export version-related variables.
+      # (These variables can be used for commit messages and PR titles.)
       # ---------------------------------------------------------------------------
       - name: Get release information
         id: get_release_info
         run: |
-          # Define version and export it.
           VERSION="0.2.1"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           
-          # Remove any leading "v" from the version string.
+          # Remove any leading "v" (if present)
           VERSION_NO_V="${VERSION#v}"
           echo "VERSION_NO_V=$VERSION_NO_V" >> $GITHUB_ENV
           
-          # Create a sample changelog message.
-          FULL_MESSAGE=$(echo "Deployment script test
-          
-          - Deployment script test" | tr '\n' ' ')
+          # Create a sample changelog message
+          FULL_MESSAGE=$(echo "Deployment script test - Deployment script test" | tr '\n' ' ')
           echo "FULL_MESSAGE=$FULL_MESSAGE" >> $GITHUB_ENV
           
-          # Extract the title (first line) and remaining lines as BODY.
-          TITLE=$(echo "Deployment script test
-          
-          - Deployment script test" | head -n 1)
+          # Use the first line as TITLE and the rest as BODY
+          TITLE=$(echo "Deployment script test - Deployment script test" | head -n 1)
           {
             echo "TITLE<<EOF" >> $GITHUB_ENV
             echo "$TITLE" >> $GITHUB_ENV
             echo "EOF" >> $GITHUB_ENV
           }
-          
-          BODY=$(echo "Deployment script test
-          
-          - Deployment script test" | tail -n +2)
+          BODY=$(echo "Deployment script test - Deployment script test" | tail -n +2)
           {
             echo "BODY<<EOF" >> $GITHUB_ENV
             echo "$BODY" >> $GITHUB_ENV
@@ -73,74 +67,35 @@ jobs:
           }
 
       # ---------------------------------------------------------------------------
-      # Step 4: Update version numbers in the dev repository on a branch named "release-update".
-      #         (This is done only in dmg-read-more-dev.)
-      # ---------------------------------------------------------------------------
-      - name: Update version numbers in dev repository
-        run: |
-          # If HEAD is detached (as when checking out a tag), create a new branch.
-          if [ -z "$(git symbolic-ref --short -q HEAD)" ]; then
-            echo "Detached HEAD detected. Creating branch 'release-update'."
-            git checkout -b release-update
-          fi
-
-          # Set Git author information.
-          git config user.email "matt@mattwatson.codes"
-          git config user.name "Matt Watson"
-          
-          # Update version info in key files.
-          sed -i "s/^\(Stable tag:\s*\).*/\1$VERSION_NO_V/" readme.txt
-          if [ -f "package.json" ]; then
-            sed -i "s/^\(\s*\"version\":\s*\"\)[^\"]*\(\"\s*,\)/\1$VERSION_NO_V\2/" package.json
-          fi
-          sed -i "s/^\(.*Version:\s*\).*/\1$VERSION_NO_V/" dmg-read-more.php
-          
-          # Commit the version updates.
-          git add readme.txt package.json dmg-read-more.php
-          git commit -m "Update version to $VERSION_NO_V in dmg-read-more-dev"
-          
-          # Push the new branch using your provided token.
-          git push https://x-access-token:${{ secrets.RELEASE_REPO_TOKEN }}@github.com/mattwatsoncodes/dmg-read-more-dev.git release-update
-
-      # ---------------------------------------------------------------------------
-      # Step 5: Clone the target repository (dmg-read-more) into a subdirectory.
+      # Step 4: Clone the target repository (dmg-read-more) into a subdirectory.
       # ---------------------------------------------------------------------------
       - name: Clone target repository
         run: |
           git clone https://x-access-token:${{ secrets.RELEASE_REPO_TOKEN }}@github.com/mattwatsoncodes/dmg-read-more.git target_repo
 
       # ---------------------------------------------------------------------------
-      # Step 6: In the target repository, create a new branch and sync files from the
-      #         source repository's "release-update" branch.
+      # Step 5: In the target repository, create a new branch for these updates.
       # ---------------------------------------------------------------------------
-      - name: Sync files from dev repository
+      - name: Create update branch in target repository
         run: |
           cd target_repo
-          # Add a remote named "source_repo" pointing to the local checkout of dmg-read-more-dev.
-          git remote add source_repo ../
-          git fetch source_repo
-          
-          # Determine the default branch of the target repository.
           DEFAULT_BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')
           DEFAULT_BRANCH=${DEFAULT_BRANCH:-"main"}
           echo "Detected default branch: $DEFAULT_BRANCH"
-          
-          # Create or switch to a new branch "update-from-dev".
-          if git show-ref --quiet refs/heads/$DEFAULT_BRANCH; then
-            git checkout -b update-from-dev origin/$DEFAULT_BRANCH || git checkout -b update-from-dev
-          else
-            echo "Default branch '$DEFAULT_BRANCH' not found. Creating it now."
-            git checkout --orphan $DEFAULT_BRANCH
-            git commit --allow-empty -m "Initialize empty main branch"
-            git push origin $DEFAULT_BRANCH
-            git checkout -b update-from-dev
-          fi
-
-          # Check out updated files from the "release-update" branch of the dev repository.
-          git checkout source_repo/release-update -- inc src dmg-read-more.php readme.txt
+          # Create (or switch to) a new branch named update-from-dev.
+          git checkout -b update-from-dev origin/$DEFAULT_BRANCH || git checkout -b update-from-dev
 
       # ---------------------------------------------------------------------------
-      # Step 7: Remove the .gitignore before building so that the build folder isn’t ignored.
+      # Step 6: Copy all files from the dev repository into the target repository.
+      # (We exclude the .git folder so as not to disturb the target repo’s history.)
+      # ---------------------------------------------------------------------------
+      - name: Copy files from dev repository to target repository
+        run: |
+          # From the workspace root (the dev repository checkout), copy everything (except .git)
+          rsync -av --exclude='.git' ./ target_repo/
+
+      # ---------------------------------------------------------------------------
+      # Step 7: Remove .gitignore from the target repository so that the build folder won’t be ignored.
       # ---------------------------------------------------------------------------
       - name: Remove .gitignore from target repository
         run: |
@@ -150,9 +105,9 @@ jobs:
 
       # ---------------------------------------------------------------------------
       # Step 8: Install dependencies and build assets in the target repository.
-      #         (composer.json and package.json are now available since we removed .gitignore.)
+      # (We perform the build while composer.json and package.json are still present.)
       # ---------------------------------------------------------------------------
-      - name: Install dependencies and build assets in target repository
+      - name: Build assets in target repository
         run: |
           cd target_repo
           composer install --no-dev || { echo "Composer installation failed"; exit 1; }
@@ -165,10 +120,9 @@ jobs:
           echo "Assets built in target repository."
 
       # ---------------------------------------------------------------------------
-      # Step 9: Remove any other unwanted files from the target repository.
-      #         (At this point, .gitignore has already been removed.)
+      # Step 9: Remove unwanted files from the target repository after the build.
       # ---------------------------------------------------------------------------
-      - name: Remove other unwanted files in target repository
+      - name: Remove unwanted files in target repository
         run: |
           cd target_repo
           rm -rf .girhub stubs .editorconfig .eslintrc.js .stylelint.json composer.json composer.lock package-lock.json package.json phpcs.xml.dist phpstan.neon webpack.config.js
@@ -177,30 +131,29 @@ jobs:
       # ---------------------------------------------------------------------------
       # Step 10: Commit the changes (built assets and file removals) to the target repository.
       # ---------------------------------------------------------------------------
-      - name: Commit built assets
+      - name: Commit changes in target repository
         run: |
           cd target_repo
           git config user.email "matt@mattwatson.codes"
           git config user.name "Matt Watson"
           git add .
-          git commit -m "Sync from dmg-read-more-dev (release-update) and build assets for release $VERSION"
+          git commit -m "Sync from dmg-read-more-dev main and build assets for release $VERSION"
           git push origin update-from-dev
 
       # ---------------------------------------------------------------------------
-      # Step 11: Create a pull request in the target repository for review and merge.
+      # Step 11: Create a pull request in the target repository.
       # ---------------------------------------------------------------------------
       - name: Create PR in target repository
         uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.RELEASE_REPO_TOKEN }}
           repository: mattwatsoncodes/dmg-read-more
-          title: "Sync from dmg-read-more-dev: $VERSION"
-          body: "This PR syncs files from dmg-read-more-dev (release-update branch), removes unwanted files, and builds assets."
+          title: "Sync from dmg-read-more-dev main: $VERSION"
+          body: "This PR copies the main branch of dmg-read-more-dev into dmg-read-more, removes unwanted files, and builds assets."
           branch: update-from-dev
 
       # ---------------------------------------------------------------------------
       # Step 12: Output a success message.
       # ---------------------------------------------------------------------------
       - name: Complete release process
-        run: |
-          echo "✅ Sync and build process completed successfully. A pull request has been created in dmg-read-more."
+        run: echo "✅ Sync and build process completed successfully. A pull request has been created in dmg-read-more."
