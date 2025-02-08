@@ -51,19 +51,31 @@ jobs:
         run: |
           cd target_repo
           git remote add source_repo ../
-          git fetch source_repo --tags
-
-          # Create and switch to a new branch for the update
-          git checkout -b update-from-dev
+          git fetch --all # Ensures all branches are fetched
           
           # Get the default branch of the target repo
-          DEFAULT_BRANCH=$(git remote show source_repo | awk '/HEAD branch/ {print $NF}')
+          DEFAULT_BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')
           
-          # Check out the default branch (whether it's 'main' or 'master')
-          git checkout -b update-from-dev origin/$DEFAULT_BRANCH || git checkout -b update-from-dev
+          # If no default branch is found, assume "main"
+          if [ -z "$DEFAULT_BRANCH" ]; then
+            DEFAULT_BRANCH="main"
+          fi
           
-          # Pull changes from the source repo using the detected default branch
-          git pull --no-commit --no-edit source_repo $DEFAULT_BRANCH || true
+          echo "Default branch detected: $DEFAULT_BRANCH"
+          
+          # Ensure the branch exists before checking out
+          if git show-ref --quiet refs/heads/$DEFAULT_BRANCH; then
+            git checkout -b update-from-dev origin/$DEFAULT_BRANCH || git checkout -b update-from-dev
+          else
+            echo "Default branch '$DEFAULT_BRANCH' not found. Creating it now."
+            git checkout --orphan $DEFAULT_BRANCH
+            git commit --allow-empty -m "Initialize empty main branch"
+            git push origin $DEFAULT_BRANCH
+            git checkout -b update-from-dev
+          fi
+          
+          # Pull latest changes (only if the branch exists)
+          git pull --no-commit --no-edit origin $DEFAULT_BRANCH || true
 
           # Remove everything except the required files
           find . -mindepth 1 -maxdepth 1 ! -name 'inc' ! -name 'src' ! -name 'dmg-read-more.php' -exec rm -rf {} +
