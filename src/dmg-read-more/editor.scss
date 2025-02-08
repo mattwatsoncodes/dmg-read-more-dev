@@ -23,3 +23,39 @@
 .highlight-effect {
 	animation: highlightFade 1s ease-out;
 }
+
+/**
+ * Styles for the "Read More" radio control excerpt and found posts.
+ *
+ * These styles ensure that radio button options containing additional excerpt text
+ * and dynamically generated found post entries are displayed properly.
+ *
+ * - `#dmg-read-more-found-post, #dmg-read-more-found-posts`:
+ *   - Targets the main wrapper elements for "Found Posts" radio controls.
+ *
+ * - `.components-radio-control__option`:
+ *   - Aligns radio option contents to `flex-start` to ensure proper text positioning.
+ *
+ * - `[id^="dmg-read-more-found-posts-"]`:
+ *   - Targets dynamically generated post entries (`dmg-read-more-found-posts-0`, `dmg-read-more-found-posts-1`, etc.).
+ *   - Adds `margin-top: 2px;` to provide spacing so text doesn't touch the top of the option.
+ *
+ * - `.dmg-read-more-radio-excerpt`:
+ *   - Reduces opacity of the excerpt text inside radio options to improve visual hierarchy.
+ *
+ */
+#dmg-read-more-found-post,
+#dmg-read-more-found-posts {
+	.components-radio-control__option {
+		align-items: flex-start;
+	}
+
+	[id^="dmg-read-more-found-posts-"] {
+		/* Adds spacing so text isn't touching the top of the option */
+		margin-top: 2px;
+	}
+
+	.dmg-read-more-radio-excerpt {
+		opacity: 0.5;
+	}
+}

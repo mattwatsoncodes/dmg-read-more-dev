@@ -1,5 +1,9 @@
 import { RadioControl, Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import {
+	formatTitle,
+	formatExcerpt,
+} from '../functions/text-utils';
 
 /**
  * PostList Component
@@ -44,6 +48,7 @@ const PostList = ( { currentPage, posts, postByPostId, searchQuery, selectedPost
 		<>
 			{ postByPostId && (
 				<RadioControl
+					id='dmg-read-more-found-post'
 					label={ __( 'Found Post Matching ID', 'dmg-read-more' ) }
 					selected={ chosenPost }
 					options={ [
@@ -66,6 +71,7 @@ const PostList = ( { currentPage, posts, postByPostId, searchQuery, selectedPost
 
 			{ posts && 0 < posts.length && (
 				<RadioControl
+					id='dmg-read-more-found-posts'
 					label={ searchQuery ?
 						__( 'Found Posts', 'dmg-read-more' ) :
 						__( 'Latest Posts', 'dmg-read-more' ) }
@@ -73,7 +79,8 @@ const PostList = ( { currentPage, posts, postByPostId, searchQuery, selectedPost
 					options={ posts.map( ( post ) => ( {
 						label: (
 							<>
-								{ post.title.rendered }
+								{ formatTitle( post, searchQuery ) }
+								{ formatExcerpt( post, searchQuery ) }
 							</>
 						),
 						value: post.id,
