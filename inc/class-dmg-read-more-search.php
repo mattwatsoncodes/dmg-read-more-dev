@@ -53,6 +53,17 @@ class DMG_Read_More_Search {
 		$date_before = Utils\get_flag_value( $assoc_args, 'date-before', gmdate( 'Y-m-d' ) );
 		$date_after  = Utils\get_flag_value( $assoc_args, 'date-after', gmdate( 'Y-m-d', strtotime( '-30 days' ) ) );
 
+		// Validate both dates.
+		if ( ! $this->is_valid_date( $date_before ) ) {
+			WP_CLI::warning( "Invalid 'date-before' value: $date_before. Defaulting to today's date." );
+			$date_before = gmdate( 'Y-m-d' );
+		}
+
+		if ( ! $this->is_valid_date( $date_after ) ) {
+			WP_CLI::warning( "Invalid 'date-after' value: $date_after. Defaulting to 30 days ago." );
+			$date_after = gmdate( 'Y-m-d', strtotime( '-30 days' ) );
+		}
+
 		// Build date query.
 		$date_query = array(
 			array(
@@ -132,5 +143,16 @@ class DMG_Read_More_Search {
 		if ( 0 === $total_found ) {
 			WP_CLI::warning( 'No posts found containing the DMG Read More block.' );
 		}
+	}
+
+	/**
+	 * Validate a date string in YYYY-MM-DD format.
+	 *
+	 * @param string $date The date string to validate.
+	 * @return bool True if valid, false otherwise.
+	 */
+	private function is_valid_date( string $date ): bool {
+		$dateTime = \DateTime::createFromFormat( 'Y-m-d', $date );
+		return $dateTime && $dateTime->format( 'Y-m-d' ) === $date;
 	}
 }
