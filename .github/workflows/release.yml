@@ -11,157 +11,116 @@ jobs:
       contents: write
 
     steps:
-      # ---------------------------------------------------------------------------
-      # Step 1: Check out the dev repository (dmg-read-more-dev) from its main branch.
-      # (No changes are pushed back to this repository.)
-      # ---------------------------------------------------------------------------
-      - name: Check out dev repository (main branch)
+      # 1. Checkout the dev repository (main branch) to use its history.
+      - name: Checkout dev repository
         uses: actions/checkout@v2
         with:
           repository: mattwatsoncodes/dmg-read-more-dev
           fetch-depth: 0
           ref: main
 
-      # ---------------------------------------------------------------------------
-      # Step 2: Set up Node.js (v18) and PHP.
-      # ---------------------------------------------------------------------------
-      - name: Set up Node.js and PHP
+      # 2. Set up Node.js (v18) and PHP (7.4).
+      - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
           node-version: '18'
-      - name: Set up PHP
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
 
-      # ---------------------------------------------------------------------------
-      # Step 3: Extract release information and export version-related variables.
-      # These variables can be used for commit messages and PR titles.
-      # ---------------------------------------------------------------------------
-      - name: Get release information
-        id: get_release_info
+      # 3. Define release variables (used for commit messages and PRs).
+      - name: Define release variables
+        id: release_vars
         run: |
           VERSION="0.2.1"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           VERSION_NO_V="${VERSION#v}"
           echo "VERSION_NO_V=$VERSION_NO_V" >> $GITHUB_ENV
-          FULL_MESSAGE=$(echo "Deployment script test - Deployment script test" | tr '\n' ' ')
-          echo "FULL_MESSAGE=$FULL_MESSAGE" >> $GITHUB_ENV
-          TITLE=$(echo "Deployment script test - Deployment script test" | head -n 1)
-          {
-            echo "TITLE<<EOF" >> $GITHUB_ENV
-            echo "$TITLE" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
-          }
-          BODY=$(echo "Deployment script test - Deployment script test" | tail -n +2)
-          {
-            echo "BODY<<EOF" >> $GITHUB_ENV
-            echo "$BODY" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
-          }
+          TITLE="Release $VERSION"
+          BODY="Automated release build."
+          echo "TITLE<<EOF" >> $GITHUB_ENV
+          echo "$TITLE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "BODY<<EOF" >> $GITHUB_ENV
+          echo "$BODY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
-      # ---------------------------------------------------------------------------
-      # Step 4: Clone the target repository (dmg-read-more) into a subdirectory.
-      # ---------------------------------------------------------------------------
+      # 4. Clone the target repository.
       - name: Clone target repository
         run: |
           git clone https://x-access-token:${{ secrets.RELEASE_REPO_TOKEN }}@github.com/mattwatsoncodes/dmg-read-more.git target_repo
 
-      # ---------------------------------------------------------------------------
-      # Step 5: In the target repository, create a new branch for these updates.
-      # ---------------------------------------------------------------------------
+      # 5. Create a new branch in the target repository.
       - name: Create update branch in target repository
         run: |
           cd target_repo
           DEFAULT_BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')
           DEFAULT_BRANCH=${DEFAULT_BRANCH:-"main"}
-          echo "Detected default branch: $DEFAULT_BRANCH"
+          echo "Default branch detected: $DEFAULT_BRANCH"
           git checkout -b update-from-dev origin/$DEFAULT_BRANCH || git checkout -b update-from-dev
 
-      # ---------------------------------------------------------------------------
-      # Step 6: Add the dev repository as a remote in the target repository.
-      # Use a relative path (the dev repo is checked out at the workspace root).
-      # ---------------------------------------------------------------------------
-      - name: Add dev repository as remote in target repository
+      # 6. Add the dev repository as a remote in the target repository and fetch its main branch.
+      - name: Add dev remote and fetch history
         run: |
           cd target_repo
           git remote add dev_repo ../
-          git fetch dev_repo
+          git fetch dev_repo main
 
-      # ---------------------------------------------------------------------------
-      # Step 7: Import the dev repository content using git subtree.
-      # This adds the dev repository’s main branch into a temporary folder "dev_files"
-      # while preserving commit history.
-      # ---------------------------------------------------------------------------
-      - name: Import dev repository as subtree
+      # 7. Import the dev repository using git subtree (preserving full history).
+      - name: Import dev repository via subtree
         run: |
           cd target_repo
-          # If you prefer to preserve full history, remove --squash; using --squash creates a single commit.
-          git subtree add --prefix=dev_files dev_repo main --squash
+          # The imported content will be placed under the "dev_files" folder.
+          git config user.email "matt@mattwatson.codes"
+          git config user.name "Matt Watson"
+          git subtree add --prefix=dev_files dev_repo main
 
-      # ---------------------------------------------------------------------------
-      # Step 8: Move the imported files from the temporary folder to the repository root.
-      # Then remove the temporary folder.
-      # ---------------------------------------------------------------------------
+      # 8. Move the imported files from the temporary folder to the repository root.
       - name: Move imported files to root
         run: |
           cd target_repo
           rsync -av --remove-source-files dev_files/ .
           rm -rf dev_files
 
-      # ---------------------------------------------------------------------------
-      # Step 9: Remove unwanted files from the target repository.
-      # (This now includes node_modules, vendor, and .gitignore.)
-      # ---------------------------------------------------------------------------
-      - name: Remove unwanted files in target repository
-        run: |
-          cd target_repo
-          rm -rf .girhub stubs .editorconfig .eslintrc.js .stylelint.json composer.json composer.lock package-lock.json package.json phpcs.xml.dist phpstan.neon webpack.config.js node_modules vendor .gitignore
-          echo "Unwanted files removed."
-
-      # ---------------------------------------------------------------------------
-      # Step 10: Install dependencies and build assets in the target repository.
-      # (composer.json and package.json are no longer present—but that’s fine if you don’t need them.)
-      # ---------------------------------------------------------------------------
-      - name: Build assets in target repository
+      # 9. Build assets in the target repository (dependencies must be available).
+      - name: Build assets
         run: |
           cd target_repo
           composer install --no-dev || { echo "Composer installation failed"; exit 1; }
           npm install || { echo "npm install failed"; exit 1; }
           npm run build || { echo "npm run build failed"; exit 1; }
           if [ ! -d "build" ]; then
-            echo "Error: Build folder does not exist!"
+            echo "Error: Build folder missing!"
             exit 1
           fi
-          echo "Assets built."
 
-      # ---------------------------------------------------------------------------
-      # Step 11: Commit the changes (imported content, build assets, and file removals)
-      # to the target repository.
-      # ---------------------------------------------------------------------------
-      - name: Commit changes in target repository
+      # 10. Remove unwanted files (e.g. composer files, node_modules, vendor, and .gitignore).
+      - name: Remove unwanted files
+        run: |
+          cd target_repo
+          rm -rf .girhub stubs .editorconfig .eslintrc.js .stylelint.json composer.json composer.lock package-lock.json package.json phpcs.xml.dist phpstan.neon webpack.config.js node_modules vendor .gitignore
+
+      # 11. Commit and push the changes in the target repository.
+      - name: Commit changes
         run: |
           cd target_repo
           git config user.email "matt@mattwatson.codes"
           git config user.name "Matt Watson"
           git add .
-          git commit -m "Import dev repository (preserving history) and build assets for release $VERSION"
+          git commit -m "Import dev repository (with full history) and build assets for release $VERSION"
           git push origin update-from-dev
 
-      # ---------------------------------------------------------------------------
-      # Step 12: Create a pull request in the target repository for review and merge.
-      # ---------------------------------------------------------------------------
-      - name: Create PR in target repository
+      # 12. Create a pull request in the target repository.
+      - name: Create PR
         uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.RELEASE_REPO_TOKEN }}
           repository: mattwatsoncodes/dmg-read-more
           title: "Sync from dmg-read-more-dev main: $VERSION"
-          body: "This PR imports the dev repository (main branch) with preserved history and builds assets."
+          body: "This PR imports the dev repository (main branch) with full commit history, builds assets, and removes unwanted files."
           branch: update-from-dev
 
-      # ---------------------------------------------------------------------------
-      # Step 13: Output a success message.
-      # ---------------------------------------------------------------------------
-      - name: Complete release process
-        run: echo "✅ Sync and build process completed successfully. A pull request has been created in dmg-read-more."
+      # 13. Output a success message.
+      - name: Complete process
+        run: echo "✅ Sync and build process completed successfully."
