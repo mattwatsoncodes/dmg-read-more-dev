@@ -112,7 +112,7 @@ jobs:
           git config user.name "Matt Watson"
           git add .
           git commit -m "Import dev repository (with full history) and build assets for release $VERSION"
-          git push origin update-from-dev
+          git push --force origin update-from-dev
 
       # 12. Create a pull request in the target repository.
       - name: Create PR in target repository
