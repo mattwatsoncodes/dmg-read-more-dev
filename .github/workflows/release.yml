@@ -114,6 +114,17 @@ jobs:
           git commit -m "Import dev repository (with full history) and build assets for release $VERSION"
           git push origin update-from-dev
 
-      # 12. Output a success message.
+      # 12. Create a pull request in the target repository.
+      - name: Create PR in target repository
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.RELEASE_REPO_TOKEN }}
+          repository: mattwatsoncodes/dmg-read-more
+          base: main
+          title: "Sync from dmg-read-more-dev"
+          body: "This PR imports the dev repository (main branch) with full commit history, builds assets, and removes unwanted files."
+          branch: update-from-dev
+
+      # 13. Output a success message.
       - name: Complete process
         run: echo "✅ Sync and build process completed successfully. A PR has been created in dmg-read-more."
