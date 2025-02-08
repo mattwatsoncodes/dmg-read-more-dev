@@ -22,12 +22,12 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
 
       # ---------------------------------------------------------------------------
-      # Step 2: Set up Node.js (now using Node 18) and PHP.
+      # Step 2: Set up Node.js (v18) and PHP.
       # ---------------------------------------------------------------------------
       - name: Set up Node.js and PHP
         uses: actions/setup-node@v2
         with:
-          node-version: '18'         # Updated from 14 to 18
+          node-version: '18'
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -39,7 +39,7 @@ jobs:
       - name: Get release information
         id: get_release_info
         run: |
-          # Capture the release tag into a local variable and write it to the environment.
+          # Define version and export it.
           VERSION="0.2.1"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           
@@ -47,13 +47,13 @@ jobs:
           VERSION_NO_V="${VERSION#v}"
           echo "VERSION_NO_V=$VERSION_NO_V" >> $GITHUB_ENV
           
-          # Process the release body (for example, to generate a changelog).
+          # Create a sample changelog message.
           FULL_MESSAGE=$(echo "Deployment script test
           
           - Deployment script test" | tr '\n' ' ')
           echo "FULL_MESSAGE=$FULL_MESSAGE" >> $GITHUB_ENV
           
-          # Extract the title (first line) and the remainder as BODY.
+          # Extract the title (first line) and remaining lines as BODY.
           TITLE=$(echo "Deployment script test
           
           - Deployment script test" | head -n 1)
@@ -78,32 +78,28 @@ jobs:
       # ---------------------------------------------------------------------------
       - name: Update version numbers in dev repository
         run: |
-          # If HEAD is detached (as is common when checking out a tag), create a new branch 'release-update'.
+          # If HEAD is detached (as when checking out a tag), create a new branch.
           if [ -z "$(git symbolic-ref --short -q HEAD)" ]; then
             echo "Detached HEAD detected. Creating branch 'release-update'."
             git checkout -b release-update
           fi
 
-          # Configure Git author information.
+          # Set Git author information.
           git config user.email "matt@mattwatson.codes"
           git config user.name "Matt Watson"
           
-          # Update the Stable tag in readme.txt.
+          # Update version info in key files.
           sed -i "s/^\(Stable tag:\s*\).*/\1$VERSION_NO_V/" readme.txt
-          
-          # Update the version in package.json if it exists.
           if [ -f "package.json" ]; then
             sed -i "s/^\(\s*\"version\":\s*\"\)[^\"]*\(\"\s*,\)/\1$VERSION_NO_V\2/" package.json
           fi
-          
-          # Optionally update a version header in dmg-read-more.php.
           sed -i "s/^\(.*Version:\s*\).*/\1$VERSION_NO_V/" dmg-read-more.php
           
-          # Stage and commit the version updates.
+          # Commit the version updates.
           git add readme.txt package.json dmg-read-more.php
           git commit -m "Update version to $VERSION_NO_V in dmg-read-more-dev"
           
-          # Push the new branch "release-update" using your provided token.
+          # Push the new branch using your provided token.
           git push https://x-access-token:${{ secrets.RELEASE_REPO_TOKEN }}@github.com/mattwatsoncodes/dmg-read-more-dev.git release-update
 
       # ---------------------------------------------------------------------------
@@ -117,10 +113,10 @@ jobs:
       # Step 6: In the target repository, create a new branch and sync files from the
       #         source repository's "release-update" branch.
       # ---------------------------------------------------------------------------
-      - name: Sync files while preserving commit history
+      - name: Sync files from dev repository
         run: |
           cd target_repo
-          # Add a remote named "source_repo" pointing to the local dmg-read-more-dev repository.
+          # Add a remote named "source_repo" pointing to the local checkout of dmg-read-more-dev.
           git remote add source_repo ../
           git fetch source_repo
           
@@ -129,7 +125,7 @@ jobs:
           DEFAULT_BRANCH=${DEFAULT_BRANCH:-"main"}
           echo "Detected default branch: $DEFAULT_BRANCH"
           
-          # Create a new branch "update-from-dev" based on the default branch.
+          # Create or switch to a new branch "update-from-dev".
           if git show-ref --quiet refs/heads/$DEFAULT_BRANCH; then
             git checkout -b update-from-dev origin/$DEFAULT_BRANCH || git checkout -b update-from-dev
           else
@@ -140,29 +136,21 @@ jobs:
             git checkout -b update-from-dev
           fi
 
-          # Configure Git author information in the target repository.
-          git config user.email "matt@mattwatson.codes"
-          git config user.name "Matt Watson"
-          
-          # Remove development-only files.
-          rm -rf .girhub stubs .editorconfig .eslintrc.js .gitignore .stylelint.json composer.json composer.lock package-lock.json package.json phpcs.xml.dist phpstan.neon webpack.config.js
-          
-          # Check out the updated files from the "release-update" branch of the dev repository.
+          # Check out updated files from the "release-update" branch of the dev repository.
           git checkout source_repo/release-update -- inc src dmg-read-more.php readme.txt
-          
-          # Verify that required files exist.
-          if [ ! -d "inc" ] || [ ! -d "src" ] || [ ! -f "dmg-read-more.php" ]; then
-            echo "Error: Required files are missing after copying."
-            exit 1
-          fi
-          
-          # Stage, commit, and push the synced files.
-          git add inc src dmg-read-more.php readme.txt
-          git commit -m "Sync selected files from dmg-read-more-dev (release-update) to dmg-read-more while preserving commit history"
-          git push origin update-from-dev
 
       # ---------------------------------------------------------------------------
-      # Step 7: Install dependencies and build assets in the target repository.
+      # Step 7: Remove the .gitignore before building so that the build folder isn’t ignored.
+      # ---------------------------------------------------------------------------
+      - name: Remove .gitignore from target repository
+        run: |
+          cd target_repo
+          rm -f .gitignore
+          echo ".gitignore removed."
+
+      # ---------------------------------------------------------------------------
+      # Step 8: Install dependencies and build assets in the target repository.
+      #         (composer.json and package.json are now available since we removed .gitignore.)
       # ---------------------------------------------------------------------------
       - name: Install dependencies and build assets in target repository
         run: |
@@ -177,45 +165,41 @@ jobs:
           echo "Assets built in target repository."
 
       # ---------------------------------------------------------------------------
-      # Step 8: Verify that the /build folder was successfully created.
+      # Step 9: Remove any other unwanted files from the target repository.
+      #         (At this point, .gitignore has already been removed.)
       # ---------------------------------------------------------------------------
-      - name: Verify build folder and contents
+      - name: Remove other unwanted files in target repository
         run: |
           cd target_repo
-          if [ -d "build" ]; then
-            echo "Build folder exists."
-            ls -la build
-          else
-            echo "Error: Build folder does not exist!"
-            exit 1
-          fi
+          rm -rf .girhub stubs .editorconfig .eslintrc.js .stylelint.json composer.json composer.lock package-lock.json package.json phpcs.xml.dist phpstan.neon webpack.config.js
+          echo "Unwanted files removed."
 
       # ---------------------------------------------------------------------------
-      # Step 9: Commit the built assets to the target repository.
+      # Step 10: Commit the changes (built assets and file removals) to the target repository.
       # ---------------------------------------------------------------------------
       - name: Commit built assets
         run: |
           cd target_repo
           git config user.email "matt@mattwatson.codes"
           git config user.name "Matt Watson"
-          git add build
-          git commit -m "Build assets for release $VERSION"
+          git add .
+          git commit -m "Sync from dmg-read-more-dev (release-update) and build assets for release $VERSION"
           git push origin update-from-dev
 
       # ---------------------------------------------------------------------------
-      # Step 10: Create a pull request in the target repository for review and merge.
+      # Step 11: Create a pull request in the target repository for review and merge.
       # ---------------------------------------------------------------------------
-      - name: Create a PR in target repository
+      - name: Create PR in target repository
         uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.RELEASE_REPO_TOKEN }}
           repository: mattwatsoncodes/dmg-read-more
           title: "Sync from dmg-read-more-dev: $VERSION"
-          body: "This PR syncs selected files from dmg-read-more-dev (release-update branch) to dmg-read-more with updated version information and built assets."
+          body: "This PR syncs files from dmg-read-more-dev (release-update branch), removes unwanted files, and builds assets."
           branch: update-from-dev
 
       # ---------------------------------------------------------------------------
-      # Step 11: Output a success message.
+      # Step 12: Output a success message.
       # ---------------------------------------------------------------------------
       - name: Complete release process
         run: |
