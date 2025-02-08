@@ -37,4 +37,6 @@ namespace {
 	const WP_CONTENT_URL = '';
 	const WP_PLUGIN_DIR = '';
 	const WP_SITE_ROOT = '';
+
+	require_once './wp-cli.php';
 }
