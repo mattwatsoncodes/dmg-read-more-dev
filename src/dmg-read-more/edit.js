@@ -45,7 +45,7 @@ export default function Edit( { attributes, setAttributes } ) {
 							{ __( 'DMG Read More', 'dmg-read-more' ) }
 						</div>
 						<div className="components-placeholder__instructions">
-							{ __( 'Please choose or search for a post from the block settings.', 'dmg-read-more' ) }
+							{ __( 'Please choose or search for a post using the block settings.', 'dmg-read-more' ) }
 						</div>
 						<div className="components-placeholder__fieldset">
 							<Button
