@@ -157,12 +157,12 @@ To use the **DMG Read More** block:
 2. Use the block insertion button and search for `DMG Read More`
 3. Insert the **DMG Read More** block into a post or page.
 4. Use the **block settings panel** to search for a post by **Keyword or ID** (you can use the provided button to open the panel)
-3. Select a post from the search results, or choose one of the latest posts.
-4. The block will generate a **'Read More'** link using the selected post's title and permalink.
+5. Select a post from the search results, or choose one of the latest posts.
+6. The block will generate a **'Read More'** link using the selected post's title and permalink.
 
 = How do I use the dmg-read-more search WPCLI command? =
 
-Use the `wp dmg-read-more search` command, with the optional `--date-before`` and `--date-after`` commands.
+Use the `wp dmg-read-more search` command, with the optional `--date-before` and `--date-after`` commands.
 
 To use the following examples, in your (project that supports WP-CLI commands), open the terminal and run:
 
