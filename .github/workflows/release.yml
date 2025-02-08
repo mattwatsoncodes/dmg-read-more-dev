@@ -36,23 +36,17 @@ jobs:
 
       # ---------------------------------------------------------------------------
       # Step 3: Extract release information and export version-related variables.
-      # (These variables can be used for commit messages and PR titles.)
+      # These variables can be used for commit messages and PR titles.
       # ---------------------------------------------------------------------------
       - name: Get release information
         id: get_release_info
         run: |
           VERSION="0.2.1"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          
-          # Remove any leading "v" (if present)
           VERSION_NO_V="${VERSION#v}"
           echo "VERSION_NO_V=$VERSION_NO_V" >> $GITHUB_ENV
-          
-          # Create a sample changelog message
           FULL_MESSAGE=$(echo "Deployment script test - Deployment script test" | tr '\n' ' ')
           echo "FULL_MESSAGE=$FULL_MESSAGE" >> $GITHUB_ENV
-          
-          # Use the first line as TITLE and the rest as BODY
           TITLE=$(echo "Deployment script test - Deployment script test" | head -n 1)
           {
             echo "TITLE<<EOF" >> $GITHUB_ENV
@@ -82,30 +76,52 @@ jobs:
           DEFAULT_BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')
           DEFAULT_BRANCH=${DEFAULT_BRANCH:-"main"}
           echo "Detected default branch: $DEFAULT_BRANCH"
-          # Create (or switch to) a new branch named update-from-dev.
           git checkout -b update-from-dev origin/$DEFAULT_BRANCH || git checkout -b update-from-dev
 
       # ---------------------------------------------------------------------------
-      # Step 6: Copy all files from the dev repository into the target repository.
-      # (We exclude the .git folder so as not to disturb the target repo’s history.)
+      # Step 6: Add the dev repository as a remote in the target repository.
+      # Use a relative path (the dev repo is checked out at the workspace root).
       # ---------------------------------------------------------------------------
-      - name: Copy files from dev repository to target repository
-        run: |
-          # From the workspace root (the dev repository checkout), copy everything (except .git)
-          rsync -av --exclude='.git' ./ target_repo/
-
-      # ---------------------------------------------------------------------------
-      # Step 7: Remove .gitignore from the target repository so that the build folder won’t be ignored.
-      # ---------------------------------------------------------------------------
-      - name: Remove .gitignore from target repository
+      - name: Add dev repository as remote in target repository
         run: |
           cd target_repo
-          rm -f .gitignore
-          echo ".gitignore removed."
+          git remote add dev_repo ../
+          git fetch dev_repo
 
       # ---------------------------------------------------------------------------
-      # Step 8: Install dependencies and build assets in the target repository.
-      # (We perform the build while composer.json and package.json are still present.)
+      # Step 7: Import the dev repository content using git subtree.
+      # This adds the dev repository’s main branch into a temporary folder "dev_files"
+      # while preserving commit history.
+      # ---------------------------------------------------------------------------
+      - name: Import dev repository as subtree
+        run: |
+          cd target_repo
+          # If you prefer to preserve full history, remove --squash; using --squash creates a single commit.
+          git subtree add --prefix=dev_files dev_repo main --squash
+
+      # ---------------------------------------------------------------------------
+      # Step 8: Move the imported files from the temporary folder to the repository root.
+      # Then remove the temporary folder.
+      # ---------------------------------------------------------------------------
+      - name: Move imported files to root
+        run: |
+          cd target_repo
+          rsync -av --remove-source-files dev_files/ .
+          rm -rf dev_files
+
+      # ---------------------------------------------------------------------------
+      # Step 9: Remove unwanted files from the target repository.
+      # (This now includes node_modules, vendor, and .gitignore.)
+      # ---------------------------------------------------------------------------
+      - name: Remove unwanted files in target repository
+        run: |
+          cd target_repo
+          rm -rf .girhub stubs .editorconfig .eslintrc.js .stylelint.json composer.json composer.lock package-lock.json package.json phpcs.xml.dist phpstan.neon webpack.config.js node_modules vendor .gitignore
+          echo "Unwanted files removed."
+
+      # ---------------------------------------------------------------------------
+      # Step 10: Install dependencies and build assets in the target repository.
+      # (composer.json and package.json are no longer present—but that’s fine if you don’t need them.)
       # ---------------------------------------------------------------------------
       - name: Build assets in target repository
         run: |
@@ -117,19 +133,11 @@ jobs:
             echo "Error: Build folder does not exist!"
             exit 1
           fi
-          echo "Assets built in target repository."
+          echo "Assets built."
 
       # ---------------------------------------------------------------------------
-      # Step 9: Remove unwanted files from the target repository after the build.
-      # ---------------------------------------------------------------------------
-      - name: Remove unwanted files in target repository
-        run: |
-          cd target_repo
-          rm -rf .girhub stubs .editorconfig .eslintrc.js .stylelint.json composer.json composer.lock package-lock.json package.json phpcs.xml.dist phpstan.neon webpack.config.js
-          echo "Unwanted files removed."
-
-      # ---------------------------------------------------------------------------
-      # Step 10: Commit the changes (built assets and file removals) to the target repository.
+      # Step 11: Commit the changes (imported content, build assets, and file removals)
+      # to the target repository.
       # ---------------------------------------------------------------------------
       - name: Commit changes in target repository
         run: |
@@ -137,11 +145,11 @@ jobs:
           git config user.email "matt@mattwatson.codes"
           git config user.name "Matt Watson"
           git add .
-          git commit -m "Sync from dmg-read-more-dev main and build assets for release $VERSION"
+          git commit -m "Import dev repository (preserving history) and build assets for release $VERSION"
           git push origin update-from-dev
 
       # ---------------------------------------------------------------------------
-      # Step 11: Create a pull request in the target repository.
+      # Step 12: Create a pull request in the target repository for review and merge.
       # ---------------------------------------------------------------------------
       - name: Create PR in target repository
         uses: peter-evans/create-pull-request@v4
@@ -149,11 +157,11 @@ jobs:
           token: ${{ secrets.RELEASE_REPO_TOKEN }}
           repository: mattwatsoncodes/dmg-read-more
           title: "Sync from dmg-read-more-dev main: $VERSION"
-          body: "This PR copies the main branch of dmg-read-more-dev into dmg-read-more, removes unwanted files, and builds assets."
+          body: "This PR imports the dev repository (main branch) with preserved history and builds assets."
           branch: update-from-dev
 
       # ---------------------------------------------------------------------------
-      # Step 12: Output a success message.
+      # Step 13: Output a success message.
       # ---------------------------------------------------------------------------
       - name: Complete release process
         run: echo "✅ Sync and build process completed successfully. A pull request has been created in dmg-read-more."
