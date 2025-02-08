@@ -152,7 +152,7 @@ class DMG_Read_More_Search {
 	 * @return bool True if valid, false otherwise.
 	 */
 	private function is_valid_date( string $date ): bool {
-		$dateTime = \DateTime::createFromFormat( 'Y-m-d', $date );
-		return $dateTime && $dateTime->format( 'Y-m-d' ) === $date;
+		$date_time = \DateTime::createFromFormat( 'Y-m-d', $date );
+		return $date_time && $date_time->format( 'Y-m-d' ) === $date;
 	}
 }

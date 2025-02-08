@@ -8,14 +8,14 @@
  * Why use a taxonomy?
  * -------------------
  * Searching for blocks in post content using `WP_Query` with the `s` parameter
- * (`s` => 'wp:dmg/read-more') is extremely inefficient, as it requires a 
- * full-text search on `wp_posts.post_content`. 
+ * (`s` => 'wp:dmg/read-more') is extremely inefficient, as it requires a
+ * full-text search on `wp_posts.post_content`.
  *
  * Performance tests on 1,000,000 posts show:
  * - A full-text search (`s` parameter) takes ~10 seconds.
  * - A taxonomy-based query (`tax_query`) returns results in ~1 second.
  *
- * The speed difference occurs because taxonomy queries leverage indexed 
+ * The speed difference occurs because taxonomy queries leverage indexed
  * relationships in the `wp_term_relationships` table, allowing MySQL to
  * efficiently retrieve only relevant posts without scanning `post_content`.
  *
