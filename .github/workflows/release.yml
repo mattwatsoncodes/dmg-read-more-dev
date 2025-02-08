@@ -102,6 +102,8 @@ jobs:
         run: |
           cd target_repo
           rm -rf .github stubs .editorconfig .eslintrc.js .stylelintrc.json composer.json composer.lock package-lock.json package.json phpcs.xml.dist phpstan.neon webpack.config.js node_modules vendor .gitignore
+          # Recursively remove any remaining .stylelintrc.json files anywhere in the repository
+          find . -type f -name ".stylelintrc.json" -delete
           echo "Unwanted files removed."
 
       # 11. Commit and push the changes to the target repository.
