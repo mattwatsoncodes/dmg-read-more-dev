@@ -55,13 +55,26 @@ jobs:
 
           # Create and switch to a new branch for the update
           git checkout -b update-from-dev
-
-          # Merge commits from source repo without altering history
-          git pull --no-commit --no-edit source_repo main || true
+          
+          # Get the default branch of the target repo
+          DEFAULT_BRANCH=$(git remote show source_repo | awk '/HEAD branch/ {print $NF}')
+          
+          # Check out the default branch (whether it's 'main' or 'master')
+          git checkout -b update-from-dev origin/$DEFAULT_BRANCH || git checkout -b update-from-dev
+          
+          # Pull changes from the source repo using the detected default branch
+          git pull --no-commit --no-edit source_repo $DEFAULT_BRANCH || true
 
           # Remove everything except the required files
           find . -mindepth 1 -maxdepth 1 ! -name 'inc' ! -name 'src' ! -name 'dmg-read-more.php' -exec rm -rf {} +
 
+          # Check if repo is empty and warn
+          if [ -z "$(ls -A)" ]; then
+            echo "Warning: Target repository is empty. Proceeding with fresh files."
+          else
+            echo "Target repository contains files. Proceeding with sync."
+          fi
+          
           # Ensure required files exist
           if [ ! -d "inc" ] || [ ! -d "src" ] || [ ! -f "dmg-read-more.php" ]; then
             echo "Error: Required files are missing after copying."
