@@ -89,7 +89,7 @@ export const formatExcerpt = ( post, searchQuery ) => {
 	const needsPrefixEllipsis = firstSnippetIndex > 0;
 
 	// Combine all snippets into a single string with ellipses in between.
-	let combinedExcerpt = contentSnippets.join('…' );
+	let combinedExcerpt = contentSnippets.join( '…' );
 
 	// Add prefix ellipsis if the first snippet is not at the start of the content.
 	if ( needsPrefixEllipsis ) {
