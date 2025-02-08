@@ -20,6 +20,7 @@
 		"@typescript-eslint/eslint-plugin": "^8.23.0",
 		"@typescript-eslint/parser": "^8.23.0",
 		"@wordpress/eslint-plugin": "^22.3.0",
+		"@wordpress/icons": "^10.17.0",
 		"@wordpress/scripts": "^30.10.0",
 		"@wordpress/stylelint-config": "^23.9.0",
 		"eslint": "^8.57.1",

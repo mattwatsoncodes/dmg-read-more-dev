@@ -1,6 +1,7 @@
 import { useBlockProps } from '@wordpress/block-editor';
 import { Button, Disabled } from '@wordpress/components';
 import { dispatch, select } from '@wordpress/data';
+import { Icon, search } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 import PluginInspectorControls from './components/inspector-controls';
 
@@ -38,49 +39,55 @@ export default function Edit( { attributes, setAttributes } ) {
 						</Disabled>
 					</p>
 				) : (
-					<>
-						<p>
-							{ __( 'No post selected. Please search and choose a post in the block settings.', 'dmg-read-more' ) }
-						</p>
-						<Button
-							variant="primary"
-							onClick={ () => {
-								// Check if the sidebar is open and showing the Block tab.
-								const isSidebarOpen = select( 'core/edit-post' ).isEditorSidebarOpened();
-								const isBlockTabActive = 'edit-post/block' === select( 'core/edit-post' ).getActiveGeneralSidebarName();
+					<div className="components-placeholder block-editor-media-placeholder is-large">
+						<div className="components-placeholder__label">
+							<Icon icon={ search } />
+							{ __( 'DMG Read More', 'dmg-read-more' ) }
+						</div>
+						<div className="components-placeholder__instructions">
+							{ __( 'Please choose or search for a post from the block settings.', 'dmg-read-more' ) }
+						</div>
+						<div className="components-placeholder__fieldset">
+							<Button
+								variant="primary"
+								onClick={ () => {
+									// Check if the sidebar is open and showing the Block tab.
+									const isSidebarOpen = select( 'core/edit-post' ).isEditorSidebarOpened();
+									const isBlockTabActive = 'edit-post/block' === select( 'core/edit-post' ).getActiveGeneralSidebarName();
 
-								// If the sidebar is not open or is not showing the Block tab, switch to the Block tab.
-								if ( ! isSidebarOpen || ! isBlockTabActive ) {
-									dispatch( 'core/edit-post' ).openGeneralSidebar( 'edit-post/block' );
-								}
-
-								// If it's closed, open it.
-								if ( ! isSidebarOpen ) {
-									dispatch( 'core/edit-post' ).openGeneralSidebar( 'inspector' );
-								}
-
-								// After a short delay, focus the search input in the inspector.
-								setTimeout( () => {
-									const searchInput = document.getElementById( 'dmg-read-more-search' );
-									if ( ! searchInput ) {
-										return;
+									// If the sidebar is not open or is not showing the Block tab, switch to the Block tab.
+									if ( ! isSidebarOpen || ! isBlockTabActive ) {
+										dispatch( 'core/edit-post' ).openGeneralSidebar( 'edit-post/block' );
 									}
 
-									searchInput.focus();
+									// If it's closed, open it.
+									if ( ! isSidebarOpen ) {
+										dispatch( 'core/edit-post' ).openGeneralSidebar( 'inspector' );
+									}
 
-									// Add highlight effect,
-									searchInput.classList.add( 'highlight-effect' );
-
-									// Remove highlight effect after animation completes.
+									// After a short delay, focus the search input in the inspector.
 									setTimeout( () => {
-										searchInput.classList.remove( 'highlight-effect' );
-									}, 1000 );
-								}, 100 );
-							} }
-						>
-							{ __( 'Open Block Settings', 'dmg-read-more' ) }
-						</Button>
-					</>
+										const searchInput = document.getElementById( 'dmg-read-more-search' );
+										if ( ! searchInput ) {
+											return;
+										}
+
+										searchInput.focus();
+
+										// Add highlight effect,
+										searchInput.classList.add( 'highlight-effect' );
+
+										// Remove highlight effect after animation completes.
+										setTimeout( () => {
+											searchInput.classList.remove( 'highlight-effect' );
+										}, 1000 );
+									}, 100 );
+								} }
+							>
+								{ __( 'Open Block Settings', 'dmg-read-more' ) }
+							</Button>
+						</div>
+					</div>
 				) }
 			</div>
 		</>
