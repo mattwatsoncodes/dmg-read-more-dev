@@ -31,21 +31,41 @@ jobs:
         id: get_release_info
         run: |
           # Capture the release tag into a local variable and write it to the environment file
-          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="0.2.1"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          
           # Remove any leading "v" from the version string
           VERSION_NO_V="${VERSION#v}"
           echo "VERSION_NO_V=$VERSION_NO_V" >> $GITHUB_ENV
-
-          # Process the release body: convert newlines to spaces for FULL_MESSAGE,
-          # capture the first line as TITLE, and the remainder as BODY.
-          FULL_MESSAGE=$(echo "${{ github.event.release.body }}" | tr '\n' ' ')
+          
+          # Process the release body:
+          # - Convert newlines to spaces for FULL_MESSAGE.
+          # - Capture the first line as TITLE.
+          # - Capture the remainder as BODY.
+          FULL_MESSAGE=$(echo "Deployment script test
+          
+          - Deployment script test" | tr '\n' ' ')
           echo "FULL_MESSAGE=$FULL_MESSAGE" >> $GITHUB_ENV
-          TITLE=$(echo "${{ github.event.release.body }}" | head -n 1)
-          echo "TITLE=$TITLE" >> $GITHUB_ENV
-          BODY=$(echo "${{ github.event.release.body }}" | tail -n +2)
-          echo "BODY=$BODY" >> $GITHUB_ENV
-
+          
+          # Set TITLE as a multi-line environment variable using the here-document syntax.
+          TITLE=$(echo "Deployment script test
+          
+          - Deployment script test" | head -n 1)
+          {
+            echo "TITLE<<EOF" >> $GITHUB_ENV
+            echo "$TITLE" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          }
+          
+          # Set BODY as a multi-line environment variable using the here-document syntax.
+          BODY=$(echo "Deployment script test
+          
+          - Deployment script test" | tail -n +2)
+          {
+            echo "BODY<<EOF" >> $GITHUB_ENV
+            echo "$BODY" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          }
       # Step 4: Clone the target repository (dmg-read-more)
       - name: Clone target repository
         run: |
