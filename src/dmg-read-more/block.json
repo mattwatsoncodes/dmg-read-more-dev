@@ -6,7 +6,7 @@
 	"title": "DMG Read More",
 	"category": "widgets",
 	"icon": "search",
-	"description": "Insert 'Read More' links to other posts via their post ID.",
+	"description": "Search for posts by ID or keyword and insert a 'Read More' link to them.",
 	"example": {},
 	"supports": {
 		"html": false

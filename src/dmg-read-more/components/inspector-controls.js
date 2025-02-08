@@ -25,7 +25,11 @@ const PluginInspectorControls = ( { selectedPost, setAttributes } ) => {
 	const [ currentPage, setCurrentPage ] = useState( 1 );
 
 	const { posts, postByPostId, totalPages } = useSelect( ( select ) => {
+		const currentPostId = select( 'core/editor' ).getCurrentPostId();
+
+		// We do not want to include the current post in our search.
 		const query = {
+			exclude: currentPostId ? [ currentPostId ] : [],
 			per_page: postsPerPage,
 			page: currentPage,
 			status: 'publish',
@@ -34,18 +38,22 @@ const PluginInspectorControls = ( { selectedPost, setAttributes } ) => {
 		let posts = [];
 		let postByPostId = null;
 
+		// Convert the search query is a post ID.
+		const parsedSearchQuery = /^\d+$/.test( searchQuery ) ? parseInt( searchQuery, 10 ) : NaN;
+
 		// If the search query is numeric, attempt to return posts by matching postId.
-		if ( searchQuery && ! isNaN( searchQuery ) ) {
+		// Exclude the current post ID.
+		if ( ! isNaN( parsedSearchQuery ) && parsedSearchQuery !== currentPostId ) {
 			const postIdQuery = {
 				...query,
-				include: [ parseInt( searchQuery ) ],
+				include: [ parsedSearchQuery ],
 			};
 
 			const postByPostIds = select( 'core' )
 				.getEntityRecords( 'postType', 'post', postIdQuery );
 
 			// Post Ids are unique, there will only be one match.
-			if ( postByPostIds && postByPostIds.length ) {
+			if ( postByPostIds?.length ) {
 				postByPostId = postByPostIds[ 0 ];
 			}
 		}
