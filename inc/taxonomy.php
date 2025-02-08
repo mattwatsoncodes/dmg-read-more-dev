@@ -11,7 +11,7 @@
  * (`s` => 'wp:dmg/read-more') is extremely inefficient, as it requires a
  * full-text search on `wp_posts.post_content`.
  *
- * Performance tests on 1,000,000 posts show:
+ * Performance tests on 100,000 posts show:
  * - A full-text search (`s` parameter) takes ~10 seconds.
  * - A taxonomy-based query (`tax_query`) returns results in ~1 second.
  *
@@ -56,7 +56,7 @@ function register_hidden_taxonomy(): void {
 		'show_in_menu'      => false,
 		'show_in_nav_menus' => false,
 		'show_tagcloud'     => false,
-		'show_in_rest'      => true, // Needed for WP-CLI support.
+		'show_in_rest'      => false,
 		'hierarchical'      => false,
 		'rewrite'           => false,
 		'query_var'         => false,

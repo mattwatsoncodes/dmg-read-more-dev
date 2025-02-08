@@ -85,7 +85,7 @@ class DMG_Read_More_Search {
 			// Using `tax_query` with a hidden taxonomy that is set when the `dmg/read-more`
 			// block is inserted into a post.
 			//
-			// Performance tests on 1,000,000 posts show that:
+			// Performance tests on 100,000 posts show that:
 			// - A search query (`s` => 'wp:dmg/read-more') takes ~10 seconds,
 			// - A taxonomy query (`tax_query`) returns results in ~1 second.
 			//

@@ -1,7 +1,7 @@
 {
 	"name": "dmg-read-more",
-	"version": "0.1.0",
-	"description": "Adds a block to search for and insert posts by ID, plus a WP-CLI command to find posts using the block.",
+	"version": "1.0.0",
+	"description": "Introduces a block that allows users to search for posts by ID and insert them as links, along with a WP-CLI command to identify posts containing this block.",
 	"author": "Matt Watson",
 	"license": "GPL-2.0-or-later",
 	"main": "build/index.js",
