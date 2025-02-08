@@ -26,104 +26,98 @@ jobs:
         with:
           php-version: '7.4'
 
-      # Step 3: Extract release version, title, and body
+      # Step 3: Extract release version, title, and body (fixing deprecated set-output by using $GITHUB_ENV)
       - name: Get release information
         id: get_release_info
         run: |
+          # Capture the release tag into a local variable and write it to the environment file
           VERSION="${{ github.event.release.tag_name }}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          # Remove any leading "v" from the version string
           VERSION_NO_V="${VERSION#v}"
-          FULL_MESSAGE="${{ github.event.release.body }}"
-          TITLE="$(echo "$FULL_MESSAGE" | head -n 1)"
-          BODY="$(echo "$FULL_MESSAGE" | tail -n +2)"
+          echo "VERSION_NO_V=$VERSION_NO_V" >> $GITHUB_ENV
 
-          echo "::set-output name=VERSION::$VERSION"
-          echo "::set-output name=VERSION_NO_V::$VERSION_NO_V"
-          echo "::set-output name=TITLE::$TITLE"
-          echo "::set-output name=BODY::$BODY"
+          # Process the release body: convert newlines to spaces for FULL_MESSAGE,
+          # capture the first line as TITLE, and the remainder as BODY.
+          FULL_MESSAGE=$(echo "${{ github.event.release.body }}" | tr '\n' ' ')
+          echo "FULL_MESSAGE=$FULL_MESSAGE" >> $GITHUB_ENV
+          TITLE=$(echo "${{ github.event.release.body }}" | head -n 1)
+          echo "TITLE=$TITLE" >> $GITHUB_ENV
+          BODY=$(echo "${{ github.event.release.body }}" | tail -n +2)
+          echo "BODY=$BODY" >> $GITHUB_ENV
 
       # Step 4: Clone the target repository (dmg-read-more)
       - name: Clone target repository
         run: |
           git clone https://x-access-token:${{ secrets.RELEASE_REPO_TOKEN }}@github.com/mattwatsoncodes/dmg-read-more.git target_repo
 
-      # Step 5: Copy required files while keeping commit history
+      # Step 5: Sync files while preserving commit history
       - name: Copy selected files while preserving commit history
         run: |
           cd target_repo
+          # Add a remote named source_repo pointing to the parent directory (the checked-out dmg-read-more-dev)
           git remote add source_repo ../
-          git fetch --all # Ensures all branches are fetched
-          
-          # Get the default branch of the target repo
+          # Fetch all branches and tags to ensure we have everything locally
+          git fetch --all --tags
+
+          # Get the default branch of the target repo from the origin remote
           DEFAULT_BRANCH=$(git remote show origin | awk '/HEAD branch/ {print $NF}')
-          
-          # If no default branch is found, assume "main"
-          if [ -z "$DEFAULT_BRANCH" ]; then
-            DEFAULT_BRANCH="main"
-          fi
-          
-          echo "Default branch detected: $DEFAULT_BRANCH"
-          
-          # Ensure the branch exists before checking out
+          DEFAULT_BRANCH=${DEFAULT_BRANCH:-"main"} # Fallback to "main" if not detected
+          echo "Detected default branch: $DEFAULT_BRANCH"
+
+          # Ensure the default branch exists before checking out
           if git show-ref --quiet refs/heads/$DEFAULT_BRANCH; then
+            # Try to create a new branch 'update-from-dev' based on the default branch
             git checkout -b update-from-dev origin/$DEFAULT_BRANCH || git checkout -b update-from-dev
           else
+            # If the default branch is missing, create it as an orphan branch, push it, then create update-from-dev
             echo "Default branch '$DEFAULT_BRANCH' not found. Creating it now."
             git checkout --orphan $DEFAULT_BRANCH
             git commit --allow-empty -m "Initialize empty main branch"
             git push origin $DEFAULT_BRANCH
             git checkout -b update-from-dev
           fi
-          
-          # Pull latest changes (only if the branch exists)
+
+          # Pull the latest changes from the target repository's default branch
           git pull --no-commit --no-edit origin $DEFAULT_BRANCH || true
 
-          # Remove everything except the required files
+          # Remove everything in the repository except the required files (inc, src, dmg-read-more.php)
           find . -mindepth 1 -maxdepth 1 ! -name 'inc' ! -name 'src' ! -name 'dmg-read-more.php' -exec rm -rf {} +
 
-          # Check if repo is empty and warn
-          if [ -z "$(ls -A)" ]; then
-            echo "Warning: Target repository is empty. Proceeding with fresh files."
-          else
-            echo "Target repository contains files. Proceeding with sync."
-          fi
-          
-          # Ensure required files exist
+          # Ensure that the required files exist; if not, exit with an error
           if [ ! -d "inc" ] || [ ! -d "src" ] || [ ! -f "dmg-read-more.php" ]; then
             echo "Error: Required files are missing after copying."
             exit 1
           fi
 
-          # Commit the changes
+          # Add all changes, commit, and push to the update-from-dev branch
           git add .
           git commit -m "Sync selected files from dmg-read-more-dev to dmg-read-more while preserving commit history"
+          git push origin update-from-dev
 
       # Step 6: Update version numbers in relevant files
       - name: Update version numbers
         run: |
           cd target_repo
 
-          VERSION_NO_V="${{ steps.get_release_info.outputs.VERSION_NO_V }}"
-          TITLE="${{ steps.get_release_info.outputs.TITLE }}"
-          BODY="${{ steps.get_release_info.outputs.BODY }}"
-
-          # Replace version in readme.txt
+          # Use the environment variables set in Step 3 for version information
+          # Replace version in readme.txt (update Stable tag)
           sed -i "s/^\(Stable tag:\s*\).*/\1$VERSION_NO_V/" readme.txt
-
-          # Replace version in package.json
+          # Replace version in package.json (update the "version" field)
           sed -i "s/^\(\s*\"version\":\s*\"\)[^\"]*\(\"\s*,\)/\1$VERSION_NO_V\2/" package.json
-
-          # Add changelog to readme.txt
+          # Insert changelog information into readme.txt after the "== Changelog ==" line
           awk -v ver="$VERSION_NO_V" -v body="$BODY" '/== Changelog ==/ { print; print ""; print "= " ver " ="; print body; next } { print }' readme.txt > readme_temp.txt && mv readme_temp.txt readme.txt
 
-          # Commit version updates
+          # Commit the version and changelog updates
           git add .
           git commit -m "Update version to $VERSION_NO_V and update changelog"
+          git push origin update-from-dev
 
       # Step 7: Install dependencies and build assets in dmg-read-more
       - name: Install dependencies and build assets
         run: |
           cd target_repo
-          composer install || { echo "Composer installation failed"; exit 1; }
+          composer install --no-dev || { echo "Composer installation failed"; exit 1; }
           npm install || { echo "npm install failed"; exit 1; }
           npm run build || { echo "npm run build failed"; exit 1; }
 
@@ -133,7 +127,7 @@ jobs:
           cd target_repo
           if [ -d "build" ]; then
             echo "Build folder exists."
-            ls -la build  # List contents of the build folder for verification
+            ls -la build  # List the contents of the build folder for verification
           else
             echo "Error: Build folder does not exist!"
             exit 1
@@ -144,8 +138,8 @@ jobs:
         run: |
           cd target_repo
           git add build
-          git commit -m "Build assets for release ${{ steps.get_release_info.outputs.VERSION }}"
-          git push origin update-from-dev # Push to a separate branch for review
+          git commit -m "Build assets for release $VERSION"
+          git push origin update-from-dev
 
       # Step 10: Create a pull request in dmg-read-more to review and merge changes
       - name: Create a PR in target repository
@@ -153,11 +147,11 @@ jobs:
         with:
           token: ${{ secrets.RELEASE_REPO_TOKEN }}
           repository: mattwatsoncodes/dmg-read-more
-          title: "Sync from dmg-read-more-dev: ${{ steps.get_release_info.outputs.VERSION }}"
+          title: "Sync from dmg-read-more-dev: $VERSION"
           body: "This PR syncs selected files from dmg-read-more-dev, updates the version, and builds the assets."
           branch: update-from-dev
 
       # Step 11: Output success message
       - name: Complete release process
         run: |
-          echo "Sync and build process completed successfully. A pull request has been created in dmg-read-more."
+          echo "✅ Sync and build process completed successfully. A pull request has been created in dmg-read-more."
