@@ -1,5 +1,5 @@
 import { useBlockProps } from '@wordpress/block-editor';
-import { Button } from '@wordpress/components';
+import { Button, Disabled } from '@wordpress/components';
 import { dispatch, select } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import PluginInspectorControls from './components/inspector-controls';
@@ -31,9 +31,11 @@ export default function Edit( { attributes, setAttributes } ) {
 			<div { ...blockProps }>
 				{ selectedPost?.id ? (
 					<p className="dmg-read-more">
-						<a href={ selectedPost.link }>
-							{ __( 'Read More:', 'dmg-read-more' ) } { selectedPost.title }
-						</a>
+						<Disabled>
+							<a href={ selectedPost.link }>
+								{ __( 'Read More:', 'dmg-read-more' ) } { selectedPost.title }
+							</a>
+						</Disabled>
 					</p>
 				) : (
 					<>
