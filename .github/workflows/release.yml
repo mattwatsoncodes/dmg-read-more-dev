@@ -102,8 +102,9 @@ jobs:
           git add readme.txt package.json dmg-read-more.php
           git commit -m "Update version to $VERSION_NO_V in dmg-read-more-dev"
           
-          # Push the new branch "release-update" so that it can be fetched by the target repo.
-          git push origin release-update
+          # Push the new branch "release-update" using a token with push rights.
+          # (Make sure you have added a secret named DEV_REPO_TOKEN with proper permissions.)
+          git push https://x-access-token:${{ secrets.DEV_REPO_TOKEN }}@github.com/mattwatsoncodes/dmg-read-more-dev.git release-update
 
       # ---------------------------------------------------------------------------
       # Step 5: Clone the target repository (dmg-read-more) into a subdirectory.
