@@ -1,14 +1,5 @@
 # DMG Read More
 
-Contributors:      mattwatsoncodes
-Tags:              block, gutenberg, posts, links, search
-Requires at least: 6.0
-Tested up to:      6.7
-Stable tag:        1.0.0
-Requires PHP:      7.4
-License:           GPL-2.0-or-later
-License URI:       https://www.gnu.org/licenses/gpl-2.0.html
-
 Introduces a block that allows users to search for posts by ID and insert them
 as links, along with a WP-CLI command to identify posts containing this block.
 
@@ -250,6 +241,7 @@ npx @wordpress/create-block dmg-read-more
 
 This command generated the foundational structure, including essential files for block development. From there, custom configurations were added to enhance the development workflow and maintain high code quality.
 
+```sh
 .
 ├── .github
 │   └── workflows
@@ -291,6 +283,7 @@ This command generated the foundational structure, including essential files for
 ├── phpstan.neon
 ├── readme.txt
 └── webpack.config.js
+```
 
 - **.github/workflows/release.yml** - GitHub Actions workflow for deploying the plugin from the development repository [dmg-read-more-dev](https://github.com/mattwatsoncodes/dmg-read-more-dev) to the release repository [dmg-read-more](https://github.com/mattwatsoncodes/dmg-read-more).
 - **build/** - Contains built assets after running the build process.
