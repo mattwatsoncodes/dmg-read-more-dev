@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       DMG Read More
  * Description:       Introduces a block that allows users to search for posts by ID and insert them as links, along with a WP-CLI command to identify posts containing this block.
- * Version:           1.0.1
+ * Version:           1.0.2
  * Requires at least: 6.7
  * Requires PHP:      7.4
  * Author:            Matt Watson <support@mattwatson.codes>

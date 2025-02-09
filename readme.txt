@@ -3,7 +3,7 @@ Contributors:      mattwatsoncodes
 Tags:              block, gutenberg, posts, links, search
 Requires at least: 6.0
 Tested up to:      6.7
-Stable tag:        1.0.1
+Stable tag:        1.0.2
 Requires PHP:      7.4
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -54,35 +54,20 @@ This section describes how to install the plugin and get it working.
 3. In WordPress, go to **Plugins > Installed Plugins** and activate **DMG Read More**.
 
 **Option 3: Development Installation**
-If you want to modify or contribute to the plugin, install from the development repository.
+If you want to modify or contribute to the plugin, you can install from the development repository.
 
-1. Navigate to your WordPress plugin directory:
-   ```
-   cd wp-content/plugins/
-   ```
-2. Clone the development repository:
-   ```
-   git clone https://github.com/mattwatsoncodes/dmg-read-more-dev.git
-   ```
-3. Navigate into the plugin directory:
-   ```
-   cd dmg-read-more-dev
-   ```
-4. Install PHP dependencies using Composer:
-   ```
-   composer install
-   ```
-5. Install JavaScript dependencies:
-   ```
-   npm install
-   ```
-6. Build the assets:
-   ```
-   npm run build
-   ```
-7. In WordPress, go to **Plugins > Installed Plugins** and activate **DMG Read More**.
+```
+cd wp-content/plugins/
+git clone https://github.com/mattwatsoncodes/dmg-read-more-dev.git
+cd dmg-read-more-dev
+composer install
+npm install
+npm run build
+```
 
-By following these steps, you can install the plugin in a way that best suits your needs.
+Finally activate the plugin.
+
+By following one of these three options, you can install the plugin in a way that best suits your needs.
 
 == Frequently Asked Questions ==
 
@@ -103,6 +88,12 @@ Here are some of the key features that the DMG Read More Block offers:
 
 If the entered value is numeric, the block first attempts to fetch a post by ID, however it also performs a keyword-based search. This is because posts can also contain numbers, so we do not want to limit the experience.
 For example if a user searches for `1479` it may return a post with the ID `1479` as the first result, but if any posts contain `1479` these will be returned too.
+
+**Search Highlighting**
+
+When a search is performed, key terms are highlighted. If the term isn't found in the title, a snippet of the content is displayed instead, helping users see where it appears in context.
+
+This feature improves clarity because, by default, WordPress does not rank search results by relevance without additional plugins.
 
 **Guided Interaction**
 
@@ -195,24 +186,21 @@ wp-env run cli wp dmg-read-more search --date-before=2025-01-01 --date-after=202
 ```
 
 = How do I build the development build? =
-To build the file locally you need to:
+To build the file locally you need to do the following steps:
 
-1. Navigate into the plugin directory:
-   ```
-   cd dmg-read-more-dev
-   ```
-2. Install PHP dependencies using Composer:
-   ```
-   composer install
-   ```
-3. Install JavaScript dependencies:
-   ```
-   npm install
-   ```
-4. Build the assets:
-   ```
-   npm run build
-   ```
+```
+# Navigate into the plugin directory:
+cd dmg-read-more-dev
+
+# Install PHP dependencies using Composer:
+composer install
+
+# Install JavaScript dependencies:
+npm install
+
+# Build the assets:
+npm run build
+```
 
 = How are the development files structured, and what do each of them do? =
 The **DMG Read More** plugin was initially scaffolded using the official WordPress block development tool:
@@ -386,6 +374,11 @@ This ensures:
 - The plugin is built and ready for use
 
 == Changelog ==
+
+= 1.0.2 =
+- Added SCSS linting to linting command
+- Fixed issued with linting config
+- Refined documentation
 
 = 1.0.1 =
 - Bug fix: Issue with button to open sidebar

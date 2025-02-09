@@ -38,7 +38,14 @@ Here are some of the key features that the DMG Read More Block offers:
 ### Post ID Search
 
 If the entered value is numeric, the block first attempts to fetch a post by ID, however it also performs a keyword-based search. This is because posts can also contain numbers, so we do not want to limit the experience.
+
 For example if a user searches for `1479` it may return a post with the ID `1479` as the first result, but if any posts contain `1479` these will be returned too.
+
+### Search Highlighting
+
+When a search is performed, key terms are highlighted. If the term isn't found in the title, a snippet of the content is displayed instead, helping users see where it appears in context.
+
+This feature improves clarity because, by default, WordPress does not rank search results by relevance without additional plugins.
 
 ### Guided Interaction
 
@@ -137,31 +144,21 @@ wp-env run cli wp dmg-read-more search --date-before=2025-01-01 --date-after=202
 
 ### How do I build the development build?
 
-To build the file locally you need to:
+To build the file locally you need to do the following steps:
 
-1. Navigate into the plugin directory:
+```sh
+# Navigate into the plugin directory:
+cd dmg-read-more-dev
 
-   ```sh
-   cd dmg-read-more-dev
-   ```
+# Install PHP dependencies using Composer:
+composer install
 
-2. Install PHP dependencies using Composer:
+# Install JavaScript dependencies:
+npm install
 
-   ```sh
-   composer install
-   ```
-
-3. Install JavaScript dependencies:
-
-   ```sh
-   npm install
-   ```
-
-4. Build the assets:
-
-   ```sh
-   npm run build
-   ```
+# Build the assets:
+npm run build
+```
 
 ### How do I test with the code quality tools?
 
@@ -374,47 +371,20 @@ This section describes how to install the plugin and get it working.
 3. In WordPress, go to **Plugins > Installed Plugins** and activate **DMG Read More**.
 
 **Option 3: Development Installation**
-If you want to modify or contribute to the plugin, install from the development repository.
+If you want to modify or contribute to the plugin, you can install from the development repository.
 
-1. Navigate to your WordPress plugin directory:
+```sh
+cd wp-content/plugins/
+git clone https://github.com/mattwatsoncodes/dmg-read-more-dev.git
+cd dmg-read-more-dev
+composer install
+npm install
+npm run build
+```
 
-   ```sh
-   cd wp-content/plugins/
-   ```
+Finally activate the plugin.
 
-2. Clone the development repository:
-
-   ```sh
-   git clone https://github.com/mattwatsoncodes/dmg-read-more-dev.git
-   ```
-
-3. Navigate into the plugin directory:
-
-   ```sh
-   cd dmg-read-more-dev
-   ```
-
-4. Install PHP dependencies using Composer:
-
-   ```sh
-   composer install
-   ```
-
-5. Install JavaScript dependencies:
-
-   ```sh
-   npm install
-   ```
-
-6. Build the assets:
-
-   ```sh
-   npm run build
-   ```
-
-7. In WordPress, go to **Plugins > Installed Plugins** and activate **DMG Read More**.
-
-By following these steps, you can install the plugin in a way that best suits your needs.
+By following one of these three options, you can install the plugin in a way that best suits your needs.
 
 ## Requirements
 

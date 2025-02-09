@@ -16,7 +16,8 @@
  *   background and smoothly fades back to transparent.
  */
 @keyframes highlightFade {
-	0% { background-color: yellow; }
+	0% { background-color: #E1E100; }
+
 	100% { background-color: transparent; }
 }
 
@@ -51,6 +52,7 @@
 	}
 
 	[id^="dmg-read-more-found-posts-"] {
+
 		/* Adds spacing so text isn't touching the top of the option */
 		margin-top: 2px;
 	}

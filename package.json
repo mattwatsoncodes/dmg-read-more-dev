@@ -1,6 +1,6 @@
 {
 	"name": "dmg-read-more",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Introduces a block that allows users to search for posts by ID and insert them as links, along with a WP-CLI command to identify posts containing this block.",
 	"author": "Matt Watson",
 	"license": "GPL-2.0-or-later",
@@ -13,7 +13,7 @@
 		"packages-update": "wp-scripts packages-update",
 		"plugin-zip": "wp-scripts plugin-zip",
 		"start": "wp-scripts start",
-		"lint": "npm run lint:js && composer run phpcs . && composer run phpstan ."
+		"lint": "npm run lint:css && npm run lint:js && composer run phpcs . && composer run phpstan ."
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.19.0",
