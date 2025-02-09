@@ -55,14 +55,14 @@ export default function Edit( { attributes, setAttributes } ) {
 									const isSidebarOpen = select( 'core/edit-post' ).isEditorSidebarOpened();
 									const isBlockTabActive = 'edit-post/block' === select( 'core/edit-post' ).getActiveGeneralSidebarName();
 
-									// If the sidebar is not open or is not showing the Block tab, switch to the Block tab.
-									if ( ! isSidebarOpen || ! isBlockTabActive ) {
-										dispatch( 'core/edit-post' ).openGeneralSidebar( 'edit-post/block' );
-									}
-
 									// If it's closed, open it.
 									if ( ! isSidebarOpen ) {
 										dispatch( 'core/edit-post' ).openGeneralSidebar( 'inspector' );
+									}
+
+									// If the sidebar is not open or is not showing the Block tab, switch to the Block tab.
+									if ( ! isBlockTabActive ) {
+										dispatch( 'core/edit-post' ).openGeneralSidebar( 'edit-post/block' );
 									}
 
 									// After a short delay, focus the search input in the inspector.

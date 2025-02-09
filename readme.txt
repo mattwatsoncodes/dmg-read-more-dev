@@ -3,7 +3,7 @@ Contributors:      mattwatsoncodes
 Tags:              block, gutenberg, posts, links, search
 Requires at least: 6.0
 Tested up to:      6.7
-Stable tag:        1.0.0
+Stable tag:        1.0.1
 Requires PHP:      7.4
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -386,6 +386,10 @@ This ensures:
 - The plugin is built and ready for use
 
 == Changelog ==
+
+= 1.0.1 =
+- Bug fix: Issue with button to open sidebar
+- Improved readme and embedded YouTube walkthrough video
 
 = 1.0.0 =
 - Initial release with DMG Read More block and `dmg-read-more search` WP-CLI command.

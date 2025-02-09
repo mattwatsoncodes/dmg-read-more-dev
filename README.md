@@ -3,8 +3,6 @@
 Introduces a block that allows users to search for posts by ID and insert them
 as links, along with a WP-CLI command to identify posts containing this block.
 
-## Description
-
 The DMG Read More plugin implements two features:
 
 - **The 'DMG Read More' editor block** - This block enables users to search for
@@ -12,6 +10,10 @@ posts by their ID and insert them as links directly into their content.
 
 - **A WP-CLI command (`dmg-read-more search`)** - The WP-CLI command lists all
 Posts (all post types) that contain the 'DMG Read More' block.
+
+For more information you can watch the video walkthrough:.
+
+[![Watch the video](https://img.youtube.com/vi/-hEbBApIUoI/maxresdefault.jpg)](https://youtu.be/-hEbBApIUoI)
 
 ## Repositories
 
@@ -22,79 +24,7 @@ In order to provide a plugin that is suitable for the WordPress plugin repositor
 
 Please be sure to review the development repository, and to avoid the need to build the plugin you can use the release for installation and testing.
 
-## Installation
-
-This section describes how to install the plugin and get it working.
-
-### Option 1: Install from the Release Repository (Recommended)
-
-1. Download the latest release ZIP file from the [Release Repository](https://github.com/mattwatsoncodes/dmg-read-more/releases).
-2. In WordPress, navigate to **Plugins > Add New** and click **Upload Plugin**.
-3. Select the downloaded ZIP file and click **Install Now**.
-4. Once installed, click **Activate Plugin**.
-
-### Option 2: Install via Git
-
-1. Navigate to your WordPress plugin directory:
-
-   ```sh
-   cd wp-content/plugins/
-   ```
-
-2. Clone the release repository:
-
-   ```sh
-   git clone https://github.com/mattwatsoncodes/dmg-read-more.git
-   ```
-
-3. In WordPress, go to **Plugins > Installed Plugins** and activate **DMG Read More**.
-
-**Option 3: Development Installation**
-If you want to modify or contribute to the plugin, install from the development repository.
-
-1. Navigate to your WordPress plugin directory:
-
-   ```sh
-   cd wp-content/plugins/
-   ```
-
-2. Clone the development repository:
-
-   ```sh
-   git clone https://github.com/mattwatsoncodes/dmg-read-more-dev.git
-   ```
-
-3. Navigate into the plugin directory:
-
-   ```sh
-   cd dmg-read-more-dev
-   ```
-
-4. Install PHP dependencies using Composer:
-
-   ```sh
-   composer install
-   ```
-
-5. Install JavaScript dependencies:
-
-   ```sh
-   npm install
-   ```
-
-6. Build the assets:
-
-   ```sh
-   npm run build
-   ```
-
-7. In WordPress, go to **Plugins > Installed Plugins** and activate **DMG Read More**.
-
-By following these steps, you can install the plugin in a way that best suits your needs.
-
-## Frequently Asked Questions
-
-### DMG Read More Block - Tell me about the implementation
+## DMG Read More Block
 
 Here are some of the key features that the DMG Read More Block offers:
 
@@ -105,18 +35,29 @@ Here are some of the key features that the DMG Read More Block offers:
 - **Pagination Support**: If multiple posts match the search criteria, results are paginated for ease of navigation.
 - **Live Preview**: Once a post is selected, the anchor link updates dynamically in the editor.
 
-#### Post ID Search
+### Post ID Search
 
 If the entered value is numeric, the block first attempts to fetch a post by ID, however it also performs a keyword-based search. This is because posts can also contain numbers, so we do not want to limit the experience.
 For example if a user searches for `1479` it may return a post with the ID `1479` as the first result, but if any posts contain `1479` these will be returned too.
 
-#### Guided Interaction
+### Guided Interaction
 
 To enhance usability, a new block that has not been configured uses the standard WordPress block `components-placeholder` and a **button** that when clicked ensures the settings panel is open when searching for posts:
 
 A **temporary yellow highlight effect** is applied to the search input field when the settings panel is opened, making it easier for users to locate.
 
-### WP-CLI dmg-read-more search Command - Tell me about the implementation
+### How do I use the 'DMG Read More' block?
+
+To use the **DMG Read More** block:
+
+1. Create or edit a post.
+2. Use the block insertion button and search for `DMG Read More`
+3. Insert the **DMG Read More** block into a post or page.
+4. Use the **block settings panel** to search for a post by **Keyword or ID** (you can use the provided button to open the panel)
+5. Select a post from the search results, or choose one of the latest posts.
+6. The block will generate a **'Read More'** link using the selected post's title and permalink.
+
+## WP-CLI `dmg-read-more search` Command
 
 Here are some of the key features that the WP-CLI `dmg-read-more search` command offers:
 
@@ -129,7 +70,7 @@ Here are some of the key features that the WP-CLI `dmg-read-more search` command
 - **Efficient WP_Query execution**: Returns **only post IDs** instead of full post objects, optimizing performance by minimizing unnecessary data retrieval.
 - **Logs matching results to STDOUT**: Outputs found post IDs directly to the console, making integration with other CLI scripts or automation workflows seamless.
 
-#### Performance - Taxonomy Query
+### Performance - Taxonomy Query
 
 To improve performance, the **DMG Read More** block uses a hidden taxonomy, `dmg_read_more_status`. When a post containing the block is saved, a term is added to this taxonomy. If the block is removed, the term is deleted.
 
@@ -142,28 +83,17 @@ Performance tests on 100,000 posts show:
 
 The significant speed improvement comes from leveraging indexed relationships in the `wp_term_relationships` table, allowing MySQL to retrieve relevant posts efficiently without scanning `post_content`.
 
-#### Performance - Query Batching
+### Performance - Query Batching
 
 Instead of setting `posts_per_page` to `-1`, which retrieves all matching posts at once, queries are processed in batches of **100 posts at a time**. This prevents excessive memory usage and improves query efficiency, especially on large datasets.
 
 A **sleep interval (`sleep(1)`)** is introduced between batch queries to reduce database load and prevent excessive strain on MySQL.
 
-#### Validation and Error Handling
+### Validation and Error Handling
 
 If a user omits or provides an invalid `date-before` or `date-after` argument, the command defaults to searching within the last **30 days** to ensure reliability.
 
 If no posts are found, a clear message is displayed to inform the user rather than failing silently.
-
-### How do I use the DMG Read More block?
-
-To use the **DMG Read More** block:
-
-1. Create or edit a post.
-2. Use the block insertion button and search for `DMG Read More`
-3. Insert the **DMG Read More** block into a post or page.
-4. Use the **block settings panel** to search for a post by **Keyword or ID** (you can use the provided button to open the panel)
-5. Select a post from the search results, or choose one of the latest posts.
-6. The block will generate a **'Read More'** link using the selected post's title and permalink.
 
 ### How do I use the dmg-read-more search WPCLI command?
 
@@ -203,6 +133,8 @@ If you're using **wp-env**, you can run the command in your project by opening t
 wp-env run cli wp dmg-read-more search --date-before=2025-01-01 --date-after=2024-12-01
 ```
 
+## Building and Testing
+
 ### How do I build the development build?
 
 To build the file locally you need to:
@@ -230,98 +162,6 @@ To build the file locally you need to:
    ```sh
    npm run build
    ```
-
-### How are the development files structured, and what do each of them do?
-
-The **DMG Read More** plugin was initially scaffolded using the official WordPress block development tool:
-
-```sh
-npx @wordpress/create-block dmg-read-more
-```
-
-This command generated the foundational structure, including essential files for block development. From there, custom configurations were added to enhance the development workflow and maintain high code quality.
-
-```sh
-.
-├── .github
-│   └── workflows
-│       └── release.yml
-├── build
-├── inc
-│   ├── class-dmg-read-more-search.php
-│   ├── cli.php
-│   ├── namespace.php
-│   └── taxonomy.php
-├── node_modules
-├── src
-│   └── dmg-read-more
-│       ├── components
-│           ├── inspector-controls.js
-│           ├── pagination.js
-│           └── post-list.js
-│       ├── functions
-│           └── text-utils.js
-│       ├── block.json
-│       ├── edit.js
-│       ├── editor.scss
-│       ├── index.js
-│       └── save.js
-├── stubs
-│   ├── stubs.php
-│   └── wp-cli.php
-├── vendor
-├── .editorconfig
-├── .eslintrc.js
-├── .gitignore
-├── .stylelintrc.json
-├── composer.json
-├── composer.lock
-├── dmg-read-more.php
-├── package-lock.json
-├── package.json
-├── phpcs.xml.dist
-├── phpstan.neon
-├── readme.txt
-└── webpack.config.js
-```
-
-- **.github/workflows/release.yml** - GitHub Actions workflow for deploying the plugin from the development repository [dmg-read-more-dev](https://github.com/mattwatsoncodes/dmg-read-more-dev) to the release repository [dmg-read-more](https://github.com/mattwatsoncodes/dmg-read-more).
-- **build/** - Contains built assets after running the build process.
-- **inc/** - PHP files providing core functionality for the plugin.
-  - **class-dmg-read-more-search.php** - Defines the main search WP-CLI subcommand for the plugin.
-  - **cli.php** - Handles WP-CLI integration for the plugin.
-  - **namespace.php** - Defines the PHP namespace for better organization, bootstraps the plugin.
-  - **taxonomy.php** - Registers and manages the hidden taxonomy used for efficient queries.
-- **node_modules/** - Contains installed Node.js dependencies (ignored in production).
-- **src/dmg-read-more/** - Source code for the Gutenberg block.
-  - **components/** - Contains reusable React components for the block editor.
-    - **components.js** - Contains the PluginInspectorControl component and handles the search logic.
-    - **pagination.js** - Contains the Pagination component.
-    - **pagination.js** - Contains the PostList component for rendering the post selector.
-  - **functions/** - Utility functions related to block behavior.
-    - **text-utils.js** - Contains helper functions for highlighting search term keywords.
-  - **block.json** - Metadata and settings for the block.
-  - **edit.js** - Defines the block's behavior in the editor, incorporates the components.
-  - **editor.scss** - Styles for the block editor interface.
-  - **index.js** - Registers the block.
-  - **save.js** - Defines how the block is saved and rendered on the frontend.
-- **stubs/** - Placeholder files for development or testing with PHPStan.
-  - **stubs.php** - Contains stub data or helper functions.
-  - **wp-cli.php** - Stub file for WP-CLI integration.
-- **vendor/** - Composer dependencies (ignored in production).
-- **.editorconfig** - Defines consistent coding styles across different editors.
-- **.eslintrc.js** - ESLint configuration for enforcing JavaScript coding standards.
-- **.gitignore** - Specifies files and folders to ignore in Git commits.
-- **.stylelintrc.json** - Stylelint configuration for enforcing CSS/SASS standards.
-- **composer.json** - PHP dependencies and project metadata for Composer.
-- **composer.lock** - Locked versions of Composer dependencies.
-- **dmg-read-more.php** - **Main plugin file**, defining hooks and functionality.
-- **package-lock.json** - Locked versions of Node.js dependencies.
-- **package.json** - Defines JavaScript dependencies and scripts.
-- **phpcs.xml.dist** - PHP_CodeSniffer configuration for code quality checks.
-- **phpstan.neon** - PHPStan configuration for static code analysis.
-- **readme.txt** - Plugin readme file for WordPress.org repository.
-- **webpack.config.js** - Webpack configuration for bundling JavaScript and assets.
 
 ### How do I test with the code quality tools?
 
@@ -414,26 +254,170 @@ This ensures:
 - PHP static analysis has no errors
 - The plugin is built and ready for use
 
-## Changelog
+## File Structure and Purpose
 
-### 1.0.0
+The **DMG Read More** plugin was initially scaffolded using the official WordPress block development tool:
 
-- Initial release with DMG Read More block and `dmg-read-more search` WP-CLI command.
+```sh
+npx @wordpress/create-block dmg-read-more
+```
 
-## Upgrade Notice
+This command generated the foundational structure, including essential files for block development. From there, custom configurations were added to enhance the development workflow and maintain high code quality.
 
-### 1.0.0
+```sh
+.
+├── .github
+│   └── workflows
+│       └── release.yml
+├── build
+├── inc
+│   ├── class-dmg-read-more-search.php
+│   ├── cli.php
+│   ├── namespace.php
+│   └── taxonomy.php
+├── node_modules
+├── src
+│   └── dmg-read-more
+│       ├── components
+│           ├── inspector-controls.js
+│           ├── pagination.js
+│           └── post-list.js
+│       ├── functions
+│           └── text-utils.js
+│       ├── block.json
+│       ├── edit.js
+│       ├── editor.scss
+│       ├── index.js
+│       └── save.js
+├── stubs
+│   ├── stubs.php
+│   └── wp-cli.php
+├── vendor
+├── .editorconfig
+├── .eslintrc.js
+├── .gitignore
+├── .stylelintrc.json
+├── composer.json
+├── composer.lock
+├── dmg-read-more.php
+├── package-lock.json
+├── package.json
+├── phpcs.xml.dist
+├── phpstan.neon
+├── readme.txt
+└── webpack.config.js
+```
 
-Welcome to the first release of DMG Read More! Enjoy inserting and finding read more links across your site.
+- **.github/workflows/release.yml** - GitHub Actions workflow for deploying the plugin from the development repository [dmg-read-more-dev](https://github.com/mattwatsoncodes/dmg-read-more-dev) to the release repository [dmg-read-more](https://github.com/mattwatsoncodes/dmg-read-more).
+- **build/** - Contains built assets after running the build process.
+- **inc/** - PHP files providing core functionality for the plugin.
+  - **class-dmg-read-more-search.php** - Defines the main search WP-CLI subcommand for the plugin.
+  - **cli.php** - Handles WP-CLI integration for the plugin.
+  - **namespace.php** - Defines the PHP namespace for better organization, bootstraps the plugin.
+  - **taxonomy.php** - Registers and manages the hidden taxonomy used for efficient queries.
+- **node_modules/** - Contains installed Node.js dependencies (ignored in production).
+- **src/dmg-read-more/** - Source code for the Gutenberg block.
+  - **components/** - Contains reusable React components for the block editor.
+    - **components.js** - Contains the PluginInspectorControl component and handles the search logic.
+    - **pagination.js** - Contains the Pagination component.
+    - **pagination.js** - Contains the PostList component for rendering the post selector.
+  - **functions/** - Utility functions related to block behavior.
+    - **text-utils.js** - Contains helper functions for highlighting search term keywords.
+  - **block.json** - Metadata and settings for the block.
+  - **edit.js** - Defines the block's behavior in the editor, incorporates the components.
+  - **editor.scss** - Styles for the block editor interface.
+  - **index.js** - Registers the block.
+  - **save.js** - Defines how the block is saved and rendered on the frontend.
+- **stubs/** - Placeholder files for development or testing with PHPStan.
+  - **stubs.php** - Contains stub data or helper functions.
+  - **wp-cli.php** - Stub file for WP-CLI integration.
+- **vendor/** - Composer dependencies (ignored in production).
+- **.editorconfig** - Defines consistent coding styles across different editors.
+- **.eslintrc.js** - ESLint configuration for enforcing JavaScript coding standards.
+- **.gitignore** - Specifies files and folders to ignore in Git commits.
+- **.stylelintrc.json** - Stylelint configuration for enforcing CSS/SASS standards.
+- **composer.json** - PHP dependencies and project metadata for Composer.
+- **composer.lock** - Locked versions of Composer dependencies.
+- **dmg-read-more.php** - **Main plugin file**, defining hooks and functionality.
+- **package-lock.json** - Locked versions of Node.js dependencies.
+- **package.json** - Defines JavaScript dependencies and scripts.
+- **phpcs.xml.dist** - PHP_CodeSniffer configuration for code quality checks.
+- **phpstan.neon** - PHPStan configuration for static code analysis.
+- **readme.txt** - Plugin readme file for WordPress.org repository.
+- **webpack.config.js** - Webpack configuration for bundling JavaScript and assets.
+
+## Installation
+
+This section describes how to install the plugin and get it working.
+
+### Option 1: Install from the Release Repository (Recommended)
+
+1. Download the latest release ZIP file from the [Release Repository](https://github.com/mattwatsoncodes/dmg-read-more/releases).
+2. In WordPress, navigate to **Plugins > Add New** and click **Upload Plugin**.
+3. Select the downloaded ZIP file and click **Install Now**.
+4. Once installed, click **Activate Plugin**.
+
+### Option 2: Install via Git
+
+1. Navigate to your WordPress plugin directory:
+
+   ```sh
+   cd wp-content/plugins/
+   ```
+
+2. Clone the release repository:
+
+   ```sh
+   git clone https://github.com/mattwatsoncodes/dmg-read-more.git
+   ```
+
+3. In WordPress, go to **Plugins > Installed Plugins** and activate **DMG Read More**.
+
+**Option 3: Development Installation**
+If you want to modify or contribute to the plugin, install from the development repository.
+
+1. Navigate to your WordPress plugin directory:
+
+   ```sh
+   cd wp-content/plugins/
+   ```
+
+2. Clone the development repository:
+
+   ```sh
+   git clone https://github.com/mattwatsoncodes/dmg-read-more-dev.git
+   ```
+
+3. Navigate into the plugin directory:
+
+   ```sh
+   cd dmg-read-more-dev
+   ```
+
+4. Install PHP dependencies using Composer:
+
+   ```sh
+   composer install
+   ```
+
+5. Install JavaScript dependencies:
+
+   ```sh
+   npm install
+   ```
+
+6. Build the assets:
+
+   ```sh
+   npm run build
+   ```
+
+7. In WordPress, go to **Plugins > Installed Plugins** and activate **DMG Read More**.
+
+By following these steps, you can install the plugin in a way that best suits your needs.
 
 ## Requirements
 
 - WordPress version 6.0 or higher.
 - PHP version 7.4 or higher.
 - WP-CLI (for command-line functionality).
-
-## Known Issues
-
-### Deployment Script
-
-The deployment script is currently not removing all files, and creating an undesired PR in the development repository. These kinks will be ironed out in the future.
